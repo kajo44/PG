@@ -16,7 +16,7 @@ import zipfile
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE = REPO_ROOT / "pkrms-geosurvey-pro.zip"
-OUTPUT = REPO_ROOT / "GeoSurveyJalan_Next" / "source_snapshot"
+OUTPUT = REPO_ROOT / "GeoSurveyJalan_Next" / "source_original"
 REPORT_DIR = REPO_ROOT / "GeoSurveyJalan_Next" / "audit"
 MAX_FILES = 100_000
 MAX_TOTAL_UNCOMPRESSED = 2 * 1024 * 1024 * 1024  # 2 GiB safety cap
