@@ -1,25 +1,29 @@
 # Status Pengembangan
 
 ## Selesai
-- [x] Branch pengembangan terpisah dibuat: `geosurvey-jalan-next`.
-- [x] Workspace `GeoSurveyJalan_Next/` dibuat.
-- [x] Arsip diekstrak dengan pemeriksaan path aman.
-- [x] Baseline asli disimpan terpisah di `source_original/`.
-- [x] Aplikasi kerja ditempatkan di `app/`.
-- [x] Inventaris sumber, baseline, roadmap, checklist, dan temuan audit dibuat.
-- [x] Perubahan awal untuk mencegah penghapusan antrean sinkronisasi palsu.
-- [x] Impor foto tidak lagi memberi koordinat/STA acak dan memvalidasi tipe/ukuran.
-- [x] Validasi geometri dan data GPS dasar ditambahkan ke map matching.
-- [x] Status anomali kecepatan dibuat konsisten.
-- [x] Klaim GEE/cloud yang belum terhubung dan data pengesahan hard-coded pada ekspor diluruskan.
-- [x] Tes unit awal untuk geometri, STA, dan map matching dibuat.
+- [x] Branch pengembangan terpisah: `geosurvey-jalan-next`.
+- [x] Workspace `GeoSurveyJalan_Next/` dengan aplikasi kerja `app/` dan baseline asli `source_original/`.
+- [x] Inventaris ZIP, hash, roadmap, checklist, dan temuan audit.
+- [x] Perlindungan antrean sinkronisasi: tidak menghapus perubahan tanpa acknowledgement backend.
+- [x] Validasi foto impor dan penghapusan penetapan koordinat/STA acak.
+- [x] Validasi geometri/GPS, konsistensi flag anomali, dan HMM/Viterbi awal.
+- [x] Penyimpanan foto IndexedDB dengan migrasi localStorage lama.
+- [x] Ekspor tidak lagi menampilkan klaim cloud/GEE dan pengesahan hard-coded yang belum terbukti.
+- [x] Tes unit awal dan pipeline CI.
 
-## Menunggu hasil validasi terbaru
-- [ ] Instalasi dependensi dari workspace `app/`.
-- [ ] TypeScript check.
-- [ ] Unit test.
-- [ ] Production build.
-- [ ] Tinjau warning, risiko, dan keterbatasan setelah build terbaru.
+## Hasil validasi CI sebelumnya
+- [x] Instalasi dependensi berhasil setelah versi esbuild disesuaikan.
+- [x] TypeScript check lulus pada run `38768831165`.
+- [x] Unit test lulus pada run `38768831165`.
+- [x] Production build lulus pada run `38768831165`.
+- [ ] Jalankan ulang seluruh validasi setelah perubahan IndexedDB dan HMM/Viterbi terbaru.
 
-## Definisi selesai
-Tahap audit dianggap selesai setelah kode diperiksa dan laporan tersedia. Tahap stabilisasi baru dianggap selesai setelah lint, tes, build, dan pemeriksaan fungsional lulus. Build sukses saja bukan bukti bahwa perhitungan geospasial atau alur survei sudah benar.
+## Pekerjaan lanjutan
+- [ ] Tes browser/manual dan uji pada data lapangan nyata.
+- [ ] EXIF/GPS otomatis, validasi STA, dan koreksi manual.
+- [ ] Backend sinkronisasi yang sesungguhnya.
+- [ ] Integrasi GEE/AI dengan konfigurasi aman.
+- [ ] Uji ekspor dan evaluasi kebenaran aturan PKRMS.
+- [ ] Evaluasi paket desktop/portable bila diperlukan.
+
+**Catatan:** lint, tes, dan build yang lulus tidak membuktikan sendiri bahwa analisis jalan sudah benar secara teknis atau memenuhi aturan PKRMS.
