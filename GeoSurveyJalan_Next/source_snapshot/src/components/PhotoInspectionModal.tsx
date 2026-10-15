@@ -120,7 +120,7 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
       defects: defectItems,
       notes,
       verified,
-      syncedToCloud: true, // will trigger distributed cloud sync
+      syncedToCloud: false, // remains pending until a real backend acknowledges the upload
     };
 
     onSavePhotoEvaluation(updated);
