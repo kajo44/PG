@@ -1,10 +1,10 @@
 # GeoSurvey Jalan Next
 
-Aplikasi web untuk mendukung survei kondisi jalan, inspeksi foto per STA, visualisasi peta, map matching dasar, analitik, dan ekspor data.
+Aplikasi web untuk mendukung survei kondisi jalan, inspeksi foto per STA, visualisasi peta, map matching HMM/Viterbi, analitik, dan ekspor data.
 
 ## Status fungsional saat ini
 
-**Ini masih baseline pengembangan.** Dataset jalan dan sebagian statistik adalah data demo. Backend sinkronisasi belum dikonfigurasi; Google Earth Engine belum terhubung. Foto impor belum membaca koordinat EXIF/GPS secara otomatis dan koordinat/STA awal harus diverifikasi. Metode map matching saat ini adalah proyeksi titik ke segmen terdekat, bukan HMM/Viterbi.
+**Ini masih baseline pengembangan.** Dataset jalan dan sebagian statistik adalah data demo. Backend sinkronisasi belum dikonfigurasi; Google Earth Engine belum terhubung. Foto impor belum membaca koordinat EXIF/GPS secara otomatis dan koordinat/STA awal harus diverifikasi. Map matching menggunakan kandidat proyeksi segmen, skor emisi berbasis jarak GPS, skor transisi berbasis selisih jarak/STA, dan dekode jalur Viterbi pada satu geometri ruas. Model ini masih perlu divalidasi pada data lapangan dan tidak menggantikan pemeriksaan teknis.
 
 ## Persyaratan
 
@@ -34,7 +34,7 @@ npm run build
 - `src/App.tsx` — state dan alur antarmodul.
 - `src/components/` — antarmuka peta, galeri, inspeksi foto, analitik, ekspor, dan status integrasi.
 - `src/utils/geoMath.ts` — perhitungan geodesi dan STA.
-- `src/utils/mapMatching.ts` — algoritme proyeksi ruas dasar.
+- `src/utils/mapMatching.ts` — algoritme HMM/Viterbi map matching.
 - `src/utils/offlineSync.ts` — antrean lokal sementara; bukan konektor server.
 
 ## Prinsip data
