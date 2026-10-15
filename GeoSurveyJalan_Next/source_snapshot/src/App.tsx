@@ -120,11 +120,17 @@ export default function App() {
 
   // Re-run Map Matching with custom parameters
   const handleRunMapMatching = (options: { sigmaZ: number; anomalyThresholdM: number }) => {
-    const result = executeMapMatching(rawGPSPoints, selectedRoad, {
-      sigmaZ: options.sigmaZ,
-      anomalyDistanceThresholdM: options.anomalyThresholdM,
-    });
-    setMapMatchResult(result);
+    try {
+      const result = executeMapMatching(rawGPSPoints, selectedRoad, {
+        sigmaZ: options.sigmaZ,
+        anomalyDistanceThresholdM: options.anomalyThresholdM,
+      });
+      setMapMatchResult(result);
+      setSyncNotice(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Kesalahan tidak dikenal saat map matching.';
+      setSyncNotice(`Map matching gagal: ${message}`);
+    }
   };
 
   // Generate fresh simulated GPS pings
@@ -168,6 +174,10 @@ export default function App() {
 
   // Update Road Centerline Geometry from map drag or manual editor
   const handleRoadGeometryChanged = (newCoords: [number, number][]) => {
+    if (newCoords.length < 2 || newCoords.some(([lat, lng]) => !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180)) {
+      setSyncNotice('Geometri ruas tidak valid. Minimal dua koordinat latitude/longitude yang valid diperlukan. Perubahan tidak disimpan.');
+      return;
+    }
     const updatedRoad: RoadLink = {
       ...selectedRoad,
       coordinates: newCoords,
