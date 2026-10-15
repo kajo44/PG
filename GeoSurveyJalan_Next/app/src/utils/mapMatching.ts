@@ -51,116 +51,206 @@ export function buildRoadCache(road: RoadLink): RoadGeometryCache {
 }
 
 /**
- * Baseline map matching: independent nearest-segment projection.
- * This is not HMM/Viterbi; sequence-aware transition scoring is a future improvement.
+ * HMM/Viterbi map matching for a GPS sequence against one ordered road polyline.
+ * Candidate emissions use GPS-to-road distance; transitions compare observed GPS
+ * displacement with the difference in cumulative STA between candidate states.
  */
 export function executeMapMatching(
   rawPoints: GPSPoint[],
   road: RoadLink,
   options: {
-    sigmaZ?: number; // GPS standard deviation (default 4.5m)
-    anomalyDistanceThresholdM?: number; // Distance beyond which it's an anomaly (default 25m)
+    sigmaZ?: number;
+    anomalyDistanceThresholdM?: number;
     smoothTransitions?: boolean;
+    transitionBetaM?: number;
+    candidateCount?: number;
   } = {}
 ): MapMatchingResult {
   const startTime = performance.now();
   const sigmaZ = options.sigmaZ ?? 4.5;
   const anomalyDistThreshold = options.anomalyDistanceThresholdM ?? 25;
-  if (!Number.isFinite(sigmaZ) || sigmaZ <= 0) throw new Error('Parameter sigmaZ harus berupa angka lebih besar dari 0.');
-  if (!Number.isFinite(anomalyDistThreshold) || anomalyDistThreshold < 0) throw new Error('Ambang anomali harus berupa angka 0 atau lebih.');
-  if (!Array.isArray(road.coordinates) || road.coordinates.length < 2) throw new Error('Geometri ruas harus memiliki minimal dua titik koordinat.');
-  if (road.coordinates.some((coord) => !coord || !Number.isFinite(coord[0]) || !Number.isFinite(coord[1]) || Math.abs(coord[0]) > 90 || Math.abs(coord[1]) > 180)) throw new Error('Geometri ruas mengandung koordinat yang tidak valid.');
-  if (rawPoints.some((pt) => !Number.isFinite(pt.lat) || !Number.isFinite(pt.lng) || Math.abs(pt.lat) > 90 || Math.abs(pt.lng) > 180 || !Number.isFinite(new Date(pt.timestamp).getTime()))) throw new Error('Data GPS mengandung koordinat atau timestamp yang tidak valid.');
-  if (rawPoints.length === 0) {
-    return { roadLinkId: road.id, rawPointCount: 0, matchedPointCount: 0, averageDeviationMeters: 0, maxDeviationMeters: 0, confidenceScore: 0, anomaliesFixed: 0, computationTimeMs: Math.round(performance.now() - startTime), points: [] };
+  const beta = options.transitionBetaM ?? 10;
+  const candidateCount = Math.floor(options.candidateCount ?? 8);
+
+  if (!Number.isFinite(sigmaZ) || sigmaZ <= 0) {
+    throw new Error('Parameter sigmaZ harus berupa angka lebih besar dari 0.');
   }
+  if (!Number.isFinite(anomalyDistThreshold) || anomalyDistThreshold < 0) {
+    throw new Error('Ambang anomali harus berupa angka 0 atau lebih.');
+  }
+  if (!Number.isFinite(beta) || beta <= 0) {
+    throw new Error('Parameter transitionBetaM harus lebih besar dari 0.');
+  }
+  if (!Number.isInteger(candidateCount) || candidateCount < 1 || candidateCount > 32) {
+    throw new Error('Jumlah kandidat map matching harus berupa bilangan bulat 1 sampai 32.');
+  }
+  if (!Array.isArray(road.coordinates) || road.coordinates.length < 2) {
+    throw new Error('Geometri ruas harus memiliki minimal dua titik koordinat.');
+  }
+  if (road.coordinates.some((coord) => !coord || !Number.isFinite(coord[0]) || !Number.isFinite(coord[1]) || Math.abs(coord[0]) > 90 || Math.abs(coord[1]) > 180)) {
+    throw new Error('Geometri ruas mengandung koordinat yang tidak valid.');
+  }
+  if (rawPoints.some((pt) => !pt || !Number.isFinite(pt.lat) || !Number.isFinite(pt.lng) || Math.abs(pt.lat) > 90 || Math.abs(pt.lng) > 180 || !Number.isFinite(new Date(pt.timestamp).getTime()))) {
+    throw new Error('Data GPS mengandung koordinat atau timestamp yang tidak valid.');
+  }
+  if (rawPoints.length === 0) {
+    return {
+      roadLinkId: road.id,
+      rawPointCount: 0,
+      matchedPointCount: 0,
+      averageDeviationMeters: 0,
+      maxDeviationMeters: 0,
+      confidenceScore: 0,
+      anomaliesDetected: 0,
+      computationTimeMs: Math.round(performance.now() - startTime),
+      points: [],
+    };
+  }
+
   const roadCache = buildRoadCache(road);
+  type Candidate = {
+    segmentIndex: number;
+    snappedLat: number;
+    snappedLng: number;
+    distanceM: number;
+    sta: number;
+    bearing: number;
+  };
+
+  const candidateLayers: Candidate[][] = rawPoints.map((point) =>
+    roadCache.segments
+      .map((segment): Candidate => {
+        const projection = projectPointOntoSegment(
+          point.lat,
+          point.lng,
+          segment.startCoord[0],
+          segment.startCoord[1],
+          segment.endCoord[0],
+          segment.endCoord[1]
+        );
+        return {
+          segmentIndex: segment.index,
+          snappedLat: projection.snappedLat,
+          snappedLng: projection.snappedLng,
+          distanceM: projection.distanceM,
+          sta: segment.startCumDistM + projection.t * segment.lengthM,
+          bearing: segment.bearing,
+        };
+      })
+      .sort((a, b) => a.distanceM - b.distanceM)
+      .slice(0, candidateCount)
+  );
+
+  // Log-space Viterbi avoids numerical underflow from multiplying probabilities.
+  const scoreLayers: number[][] = [];
+  const backPointers: number[][] = [];
+  const emissionScore = (candidate: Candidate) => -0.5 * Math.pow(candidate.distanceM / sigmaZ, 2);
+
+  scoreLayers[0] = candidateLayers[0].map(emissionScore);
+  backPointers[0] = candidateLayers[0].map(() => -1);
+
+  for (let pointIndex = 1; pointIndex < rawPoints.length; pointIndex++) {
+    const previousPoint = rawPoints[pointIndex - 1];
+    const currentPoint = rawPoints[pointIndex];
+    const observedDistance = haversineDistanceMeters(
+      previousPoint.lat,
+      previousPoint.lng,
+      currentPoint.lat,
+      currentPoint.lng
+    );
+    const currentScores: number[] = [];
+    const currentBackPointers: number[] = [];
+
+    for (const currentCandidate of candidateLayers[pointIndex]) {
+      const emission = emissionScore(currentCandidate);
+      let bestScore = Number.NEGATIVE_INFINITY;
+      let bestPreviousIndex = 0;
+
+      for (let previousIndex = 0; previousIndex < candidateLayers[pointIndex - 1].length; previousIndex++) {
+        const previousCandidate = candidateLayers[pointIndex - 1][previousIndex];
+        const routeDistance = Math.abs(currentCandidate.sta - previousCandidate.sta);
+        const transition = options.smoothTransitions === false
+          ? 0
+          : -Math.abs(observedDistance - routeDistance) / beta;
+        const score = scoreLayers[pointIndex - 1][previousIndex] + transition + emission;
+        if (score > bestScore) {
+          bestScore = score;
+          bestPreviousIndex = previousIndex;
+        }
+      }
+
+      currentScores.push(bestScore);
+      currentBackPointers.push(bestPreviousIndex);
+    }
+    scoreLayers.push(currentScores);
+    backPointers.push(currentBackPointers);
+  }
+
+  const selectedCandidateIndices = new Array<number>(rawPoints.length);
+  selectedCandidateIndices[rawPoints.length - 1] = scoreLayers[scoreLayers.length - 1]
+    .reduce((bestIndex, score, index, scores) => score > scores[bestIndex] ? index : bestIndex, 0);
+
+  for (let pointIndex = rawPoints.length - 1; pointIndex > 0; pointIndex--) {
+    selectedCandidateIndices[pointIndex - 1] = backPointers[pointIndex][selectedCandidateIndices[pointIndex]];
+  }
 
   let totalOffset = 0;
   let maxOffset = 0;
   let anomaliesCount = 0;
 
-  const matchedPoints: GPSPoint[] = rawPoints.map((pt, ptIdx) => {
-    let bestDist = Infinity;
-    let bestSnappedLat = pt.lat;
-    let bestSnappedLng = pt.lng;
-    let bestSta = 0;
-    let bestSegmentIdx = 0;
-
-    // Evaluate candidate projections along all segments of the road
-    for (const seg of roadCache.segments) {
-      const proj = projectPointOntoSegment(
-        pt.lat,
-        pt.lng,
-        seg.startCoord[0],
-        seg.startCoord[1],
-        seg.endCoord[0],
-        seg.endCoord[1]
-      );
-
-      // Choose the nearest projection independently for this point; no HMM/Viterbi transition model is applied.
-      if (proj.distanceM < bestDist) {
-        bestDist = proj.distanceM;
-        bestSnappedLat = proj.snappedLat;
-        bestSnappedLng = proj.snappedLng;
-        bestSta = seg.startCumDistM + proj.t * seg.lengthM;
-        bestSegmentIdx = seg.index;
-      }
-    }
-
-    // Check for anomalies
+  const matchedPoints: GPSPoint[] = rawPoints.map((point, pointIndex) => {
+    const candidate = options.smoothTransitions === false
+      ? candidateLayers[pointIndex][0]
+      : candidateLayers[pointIndex][selectedCandidateIndices[pointIndex]];
+    const bestDist = candidate.distanceM;
     let isAnomaly = bestDist > anomalyDistThreshold;
-    let anomalyReason: string | undefined = undefined;
+    let anomalyReason: string | undefined;
 
     if (isAnomaly) {
-      anomaliesCount++;
       anomalyReason = `GPS Drift > ${Math.round(bestDist)}m dari as jalan`;
-    } else if (ptIdx > 0) {
-      const prevPt = rawPoints[ptIdx - 1];
-      const timeDiffSec =
-        (new Date(pt.timestamp).getTime() - new Date(prevPt.timestamp).getTime()) / 1000;
+    } else if (pointIndex > 0) {
+      const previousPoint = rawPoints[pointIndex - 1];
+      const timeDiffSec = (
+        new Date(point.timestamp).getTime() - new Date(previousPoint.timestamp).getTime()
+      ) / 1000;
       if (timeDiffSec > 0) {
-        const speedKmh =
-          (haversineDistanceMeters(pt.lat, pt.lng, prevPt.lat, prevPt.lng) /
-            timeDiffSec) *
-          3.6;
+        const speedKmh = (
+          haversineDistanceMeters(point.lat, point.lng, previousPoint.lat, previousPoint.lng) /
+          timeDiffSec
+        ) * 3.6;
         if (speedKmh > 110) {
           isAnomaly = true;
-          anomaliesCount++;
           anomalyReason = `Lonjakan kecepatan tidak wajar (${Math.round(speedKmh)} km/jam)`;
         }
       }
     }
 
+    if (isAnomaly) anomaliesCount++;
     totalOffset += bestDist;
-    if (bestDist > maxOffset) maxOffset = bestDist;
-
-    // Dynamic heading from snapped segment
-    const segBearing = roadCache.segments[bestSegmentIdx]?.bearing ?? pt.heading;
+    maxOffset = Math.max(maxOffset, bestDist);
 
     return {
-      ...pt,
+      ...point,
       isMatched: true,
-      snappedLat: bestSnappedLat,
-      snappedLng: bestSnappedLng,
+      snappedLat: candidate.snappedLat,
+      snappedLng: candidate.snappedLng,
       distanceOffsetM: Math.round(bestDist * 10) / 10,
-      sta: Math.round(bestSta),
-      staLabel: formatSTA(bestSta),
-      heading: segBearing,
+      sta: Math.round(candidate.sta),
+      staLabel: formatSTA(candidate.sta),
+      heading: candidate.bearing,
       isAnomaly,
       anomalyReason,
     };
   });
 
-  const avgOffset = rawPoints.length > 0 ? totalOffset / rawPoints.length : 0;
-  // Confidence score: based on Gaussian distribution of errors
-  // If avgOffset <= 2m -> ~98%, 5m -> ~90%, 15m -> ~60%
+  const avgOffset = totalOffset / rawPoints.length;
+  // This is a heuristic fit score, not a statistically calibrated probability.
   const confidenceScore = Math.max(
     10,
-    Math.min(99.4, Math.round((Math.exp(-(avgOffset * avgOffset) / (2 * sigmaZ * sigmaZ * 9)) * 100) * 10) / 10)
+    Math.min(99.4, Math.round(
+      Math.exp(-(avgOffset * avgOffset) / (2 * sigmaZ * sigmaZ * 9)) * 1000
+    ) / 10)
   );
-
-  const endTime = performance.now();
 
   return {
     roadLinkId: road.id,
@@ -169,8 +259,8 @@ export function executeMapMatching(
     averageDeviationMeters: Math.round(avgOffset * 10) / 10,
     maxDeviationMeters: Math.round(maxOffset * 10) / 10,
     confidenceScore,
-    anomaliesFixed: anomaliesCount,
-    computationTimeMs: Math.round(endTime - startTime),
+    anomaliesDetected: anomaliesCount,
+    computationTimeMs: Math.round(performance.now() - startTime),
     points: matchedPoints,
   };
 }
