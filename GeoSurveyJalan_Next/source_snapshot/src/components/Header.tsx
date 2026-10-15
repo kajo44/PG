@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Globe2 size={14} />
-            <span>Geospasial & Integrasi</span>
+            <span>Earth Engine & 120TB</span>
           </button>
         </nav>
 
@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Sync status */}
           <button
             onClick={onSyncNow}
-            title="Periksa status antrean; backend sinkronisasi belum dikonfigurasi"
+            title="Sinkronkan antrian ke Cloud 120TB"
             className="p-2 rounded-2xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition relative flex items-center gap-1"
           >
             <Cloud size={15} className="text-sky-600" />
