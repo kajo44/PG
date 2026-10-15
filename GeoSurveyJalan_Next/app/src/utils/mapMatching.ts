@@ -51,8 +51,8 @@ export function buildRoadCache(road: RoadLink): RoadGeometryCache {
 }
 
 /**
- * Map Matching Algorithm (Hidden Markov Model & Orthogonal Road Projection)
- * Snaps raw GPS points to the exact road network polyline
+ * Baseline map matching: independent nearest-segment projection.
+ * This is not HMM/Viterbi; sequence-aware transition scoring is a future improvement.
  */
 export function executeMapMatching(
   rawPoints: GPSPoint[],
@@ -66,6 +66,14 @@ export function executeMapMatching(
   const startTime = performance.now();
   const sigmaZ = options.sigmaZ ?? 4.5;
   const anomalyDistThreshold = options.anomalyDistanceThresholdM ?? 25;
+  if (!Number.isFinite(sigmaZ) || sigmaZ <= 0) throw new Error('Parameter sigmaZ harus berupa angka lebih besar dari 0.');
+  if (!Number.isFinite(anomalyDistThreshold) || anomalyDistThreshold < 0) throw new Error('Ambang anomali harus berupa angka 0 atau lebih.');
+  if (!Array.isArray(road.coordinates) || road.coordinates.length < 2) throw new Error('Geometri ruas harus memiliki minimal dua titik koordinat.');
+  if (road.coordinates.some((coord) => !coord || !Number.isFinite(coord[0]) || !Number.isFinite(coord[1]) || Math.abs(coord[0]) > 90 || Math.abs(coord[1]) > 180)) throw new Error('Geometri ruas mengandung koordinat yang tidak valid.');
+  if (rawPoints.some((pt) => !Number.isFinite(pt.lat) || !Number.isFinite(pt.lng) || Math.abs(pt.lat) > 90 || Math.abs(pt.lng) > 180 || !Number.isFinite(new Date(pt.timestamp).getTime()))) throw new Error('Data GPS mengandung koordinat atau timestamp yang tidak valid.');
+  if (rawPoints.length === 0) {
+    return { roadLinkId: road.id, rawPointCount: 0, matchedPointCount: 0, averageDeviationMeters: 0, maxDeviationMeters: 0, confidenceScore: 0, anomaliesFixed: 0, computationTimeMs: Math.round(performance.now() - startTime), points: [] };
+  }
   const roadCache = buildRoadCache(road);
 
   let totalOffset = 0;
@@ -90,8 +98,7 @@ export function executeMapMatching(
         seg.endCoord[1]
       );
 
-      // Emission probability weight penalty:
-      // In HMM: emission = exp(-0.5 * (dist / sigma)^2)
+      // Choose the nearest projection independently for this point; no HMM/Viterbi transition model is applied.
       if (proj.distanceM < bestDist) {
         bestDist = proj.distanceM;
         bestSnappedLat = proj.snappedLat;
@@ -102,7 +109,7 @@ export function executeMapMatching(
     }
 
     // Check for anomalies
-    const isAnomaly = bestDist > anomalyDistThreshold;
+    let isAnomaly = bestDist > anomalyDistThreshold;
     let anomalyReason: string | undefined = undefined;
 
     if (isAnomaly) {
@@ -118,6 +125,7 @@ export function executeMapMatching(
             timeDiffSec) *
           3.6;
         if (speedKmh > 110) {
+          isAnomaly = true;
           anomaliesCount++;
           anomalyReason = `Lonjakan kecepatan tidak wajar (${Math.round(speedKmh)} km/jam)`;
         }
