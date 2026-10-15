@@ -139,7 +139,7 @@ export const MapMatchingPanel: React.FC<MapMatchingPanelProps> = ({
                 <div className="text-[11px] text-slate-500 font-medium">Tingkat Akurasi Snap</div>
                 <div className="text-xl font-bold text-emerald-600 mt-0.5 flex items-baseline gap-1">
                   {mapMatchResult?.confidenceScore ?? 98.4}%
-                  <span className="text-[10px] text-slate-400 font-normal">HMM score</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Skor heuristik</span>
                 </div>
                 <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
                   <div
@@ -198,7 +198,7 @@ export const MapMatchingPanel: React.FC<MapMatchingPanelProps> = ({
                 {isProcessing ? (
                   <>
                     <RefreshCw size={14} className="animate-spin" />
-                    Memproses Algoritma HMM...
+                    Menghitung kandidat dan jalur Viterbi...
                   </>
                 ) : (
                   <>
