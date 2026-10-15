@@ -50,6 +50,14 @@ Ekspor PDF awal menyertakan nama pejabat, NIP, dan kode lisensi yang ditanam di 
 7. Hubungkan GEE/AI hanya melalui konfigurasi yang benar dan respons layanan yang dapat diverifikasi.
 8. Uji terhadap data jalan nyata dan aturan PKRMS sebelum penggunaan operasional.
 
+
+
+## Hasil validasi otomatis sementara
+
+- Inventarisasi ZIP dan ekstraksi aman: berhasil.
+- Pada satu putaran CI, instalasi npm gagal karena versi `esbuild` yang dipatok aplikasi tidak memenuhi peer requirement Vite 8.3 (`esbuild ^0.27.0 || ^0.28.0`). Dependensi diperbarui ke `^0.28.0`.
+- Setelah perbaikan dependensi, validasi harus dijalankan ulang pada workspace `app/`. Status akhir lint, unit test, dan build hanya akan dilaporkan dari run terbaru.
+
 ## Batas audit
 
 Audit ini menggabungkan inspeksi statis dan tes otomatis yang sedang dijalankan. Kebenaran geospasial, kinerja, sinkronisasi jaringan, keamanan operasional, dan kesesuaian PKRMS belum dapat dinyatakan lulus tanpa pengujian khusus.
