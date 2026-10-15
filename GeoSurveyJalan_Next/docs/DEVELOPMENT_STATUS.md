@@ -7,20 +7,21 @@
 - [x] Perlindungan antrean sinkronisasi; tidak menghapus perubahan tanpa acknowledgement backend.
 - [x] Validasi foto impor dan penghapusan penetapan koordinat/STA acak.
 - [x] Pembacaan GPS EXIF bila tersedia dan proyeksi awal ke STA ruas.
+- [x] Form koreksi manual latitude, longitude, dan STA dengan validasi dasar.
 - [x] Validasi geometri/GPS, HMM/Viterbi awal, dan konsistensi flag anomali.
 - [x] Penyimpanan foto IndexedDB dengan migrasi localStorage lama; antrean hanya menyimpan metadata foto.
 - [x] Ekspor tidak lagi menampilkan klaim cloud/GEE dan pengesahan hard-coded yang belum terbukti.
 - [x] Tes unit awal dan pipeline CI.
-- [x] Lazy loading untuk modul tab dan modal.
+- [x] Lazy loading modul tab dan modal serta package-lock npm.
 
 ## Hasil validasi CI
-- [x] Run `38768831165`: instalasi, TypeScript check, tes unit, dan production build lulus sebelum EXIF GPS dan penyimpanan IndexedDB.
-- [x] Run `38770468972`: instalasi, TypeScript check, 12 tes unit, dan production build lulus setelah EXIF GPS, IndexedDB, dan HMM/Viterbi.
-- [ ] Jalankan ulang validasi setelah pemisahan bundle terbaru.
+- [x] Run `38770468972`: instalasi, TypeScript check, 12 tes unit, dan production build lulus sebelum lazy loading terakhir.
+- [x] Run `38770842597`: `npm ci`, TypeScript check, 12 tes unit, dan production build lulus setelah lazy loading.
+- [ ] Jalankan ulang validasi setelah UI koreksi foto/STA ditambahkan.
 
 ## Pekerjaan lanjutan
 - [ ] Tes browser/manual dan uji pada data lapangan nyata.
-- [ ] UI koreksi foto/STA dan verifikasi metadata.
+- [ ] Validasi hasil EXIF/STA terhadap foto dan ruas nyata.
 - [ ] Backend sinkronisasi yang sesungguhnya.
 - [ ] Integrasi GEE/AI dengan konfigurasi aman.
 - [ ] Uji ekspor dan evaluasi kebenaran aturan PKRMS.
