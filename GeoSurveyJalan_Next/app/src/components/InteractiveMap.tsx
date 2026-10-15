@@ -140,7 +140,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     baseTileLayerRef.current.setUrl(tileUrl);
   }, [mapStyle]);
 
-  // Update GEE Overlay Layer
+  // Update demo imagery overlay (not a Google Earth Engine connection)
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
@@ -150,7 +150,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
 
     if (geeLayerType !== 'NONE') {
-      // Simulate Google Earth Engine multi-spectral raster overlay using transparent tinted tile filters
+      // This is a visual demo using third-party basemap tiles, not multispectral/NDVI data from GEE.
       let overlayUrl = '';
       let opacity = 0.65;
 
@@ -170,7 +170,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       const geeLayer = L.tileLayer(overlayUrl, {
         opacity,
-        attribution: 'Google Earth Engine Engine 120TB Sentinel Processing',
+        attribution: 'Demo overlay: Esri / OpenStreetMap contributors; not Google Earth Engine data',
       }).addTo(mapInstanceRef.current);
 
       geeTileLayerRef.current = geeLayer;
