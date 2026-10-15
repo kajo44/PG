@@ -47,7 +47,7 @@ describe('geoMath', () => {
   });
 });
 
-describe('executeMapMatching baseline', () => {
+describe('executeMapMatching HMM/Viterbi', () => {
   it('projects GPS points and calculates STA', () => {
     const points = [
       gps('p1', 0.00001, 0.005, '2026-01-01T00:00:00.000Z'),
@@ -69,6 +69,31 @@ describe('executeMapMatching baseline', () => {
     const result = executeMapMatching(points, road);
     assert.equal(result.points[1].isAnomaly, true);
     assert.match(result.points[1].anomalyReason ?? '', /Lonjakan kecepatan/);
+  });
+
+  it('keeps STA progression coherent on a hairpin-shaped road', () => {
+    const hairpin: RoadLink = {
+      ...road,
+      coordinates: [[0, 0], [0, 0.01], [0.0001, 0.01], [0.0001, 0]],
+    };
+    const points = [
+      gps('h1', 0.00002, 0.002, '2026-01-01T00:00:00.000Z'),
+      gps('h2', 0.00002, 0.005, '2026-01-01T00:00:03.000Z'),
+      gps('h3', 0.00002, 0.008, '2026-01-01T00:00:06.000Z'),
+    ];
+    const result = executeMapMatching(points, hairpin);
+    const stations = result.points.map((point) => point.sta ?? -1);
+    assert.ok(stations[0] >= 0);
+    assert.ok(stations[1] > stations[0]);
+    assert.ok(stations[2] > stations[1]);
+    assert.ok(stations[2] < 1_200, 'path should stay on the first leg rather than jump to the return leg');
+  });
+
+  it('rejects invalid Viterbi candidate count', () => {
+    assert.throws(
+      () => executeMapMatching([gps('p1', 0, 0, '2026-01-01T00:00:00.000Z')], road, { candidateCount: 0 }),
+      /Jumlah kandidat map matching/,
+    );
   });
 
   it('returns zero confidence for an empty GPS sequence', () => {
