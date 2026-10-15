@@ -41,7 +41,7 @@ export interface MapMatchingResult {
   averageDeviationMeters: number;
   maxDeviationMeters: number;
   confidenceScore: number; // 0 - 100%
-  anomaliesFixed: number;
+  anomaliesDetected: number;
   computationTimeMs: number;
   points: GPSPoint[];
 }
