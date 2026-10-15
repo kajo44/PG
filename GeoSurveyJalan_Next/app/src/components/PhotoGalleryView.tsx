@@ -12,6 +12,8 @@ import {
   Upload,
 } from 'lucide-react';
 import { formatSTA } from '../utils/geoMath';
+import exifr from 'exifr';
+import { locatePhotoOnRoad } from '../utils/photoLocation';
 
 interface PhotoGalleryViewProps {
   selectedRoad: RoadLink;
@@ -57,8 +59,9 @@ export const PhotoGalleryView: React.FC<PhotoGalleryViewProps> = ({
   });
 
   // Handle local file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       window.alert('File tidak dikenali sebagai gambar. Pilih berkas foto seperti JPG, PNG, atau WEBP.');
@@ -76,23 +79,52 @@ export const PhotoGalleryView: React.FC<PhotoGalleryViewProps> = ({
       return;
     }
 
+    // Reset the picker immediately; the File object remains available for parsing.
+    input.value = '';
+
+    let photoLat = selectedRoad.coordinates[0][0];
+    let photoLng = selectedRoad.coordinates[0][1];
+    let photoSta = 0;
+    let locationNote = 'GPS EXIF tidak tersedia. Koordinat memakai titik awal ruas dan STA 0 sementara; koreksi manual diperlukan.';
+
+    try {
+      const exifGps = await exifr.gps(file);
+      if (
+        exifGps &&
+        Number.isFinite(exifGps.latitude) &&
+        Number.isFinite(exifGps.longitude) &&
+        Math.abs(exifGps.latitude) <= 90 &&
+        Math.abs(exifGps.longitude) <= 180
+      ) {
+        const location = locatePhotoOnRoad(exifGps.latitude, exifGps.longitude, selectedRoad);
+        photoLat = exifGps.latitude;
+        photoLng = exifGps.longitude;
+        photoSta = Math.round(location.sta);
+        locationNote = location.distanceM > 100
+          ? `GPS EXIF terdeteksi, tetapi berjarak ${Math.round(location.distanceM)} m dari garis ruas. STA awal dihitung dari proyeksi terdekat; verifikasi ruas dan STA sebelum analisis.`
+          : `GPS EXIF terdeteksi. STA awal dihitung dari proyeksi terdekat; verifikasi sebelum analisis. Jarak ke garis ruas ${Math.round(location.distanceM)} m.`;
+      }
+    } catch (error) {
+      console.warn('Metadata GPS EXIF tidak dapat dibaca; foto tetap dapat diimpor untuk koreksi manual.', error);
+      locationNote = 'Metadata GPS EXIF gagal dibaca. Koordinat memakai titik awal ruas dan STA 0 sementara; koreksi manual diperlukan.';
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
-      const base64Url = event.target?.result as string;
-
-      // Do not invent GPS/STA values. Until EXIF parsing or manual positioning
-      // is implemented, use a clearly labelled provisional origin.
-      const provisionalSta = 0;
-      const coord = selectedRoad.coordinates[0] ?? [0, 0];
+      const result = event.target?.result;
+      if (typeof result !== 'string') {
+        window.alert('Data foto tidak dapat dibaca sebagai gambar. Foto belum diimpor.');
+        return;
+      }
 
       const newPhoto: SurveyPhoto = {
         id: `photo-import-${Date.now()}`,
         roadLinkId: selectedRoad.id,
-        sta: provisionalSta,
-        staLabel: formatSTA(provisionalSta),
-        lat: coord[0],
-        lng: coord[1],
-        imageSrc: base64Url,
+        sta: photoSta,
+        staLabel: formatSTA(photoSta),
+        lat: photoLat,
+        lng: photoLng,
+        imageSrc: result,
         timestamp: new Date().toISOString(),
         surveyor: 'Surveyor Lapangan',
         condition: 'SEDANG',
@@ -101,7 +133,7 @@ export const PhotoGalleryView: React.FC<PhotoGalleryViewProps> = ({
         pciScore: 75,
         defects: [{ type: 'Retak Permukaan', severity: 'Sedang', extentPercent: 15 }],
         laneWidthMeters: selectedRoad.widthMeters,
-        notes: 'Foto diimpor. Koordinat dan STA masih nilai awal sementara; verifikasi metadata GPS/EXIF atau koreksi manual sebelum dipakai untuk analisis.',
+        notes: `Foto ${file.name} diimpor. ${locationNote}`,
         verified: false,
         syncedToCloud: false,
         drainageCondition: 'Baik',
@@ -114,8 +146,6 @@ export const PhotoGalleryView: React.FC<PhotoGalleryViewProps> = ({
     };
 
     reader.readAsDataURL(file);
-    // Reset input
-    e.target.value = '';
   };
 
   return (
