@@ -1,0 +1,40 @@
+name: GeoSurvey Jalan Next - Source Audit
+
+on:
+  push:
+    branches:
+      - geosurvey-jalan-next
+    paths:
+      - 'pkrms-geosurvey-pro.zip'
+      - 'GeoSurveyJalan_Next/tools/audit_source_zip.py'
+      - '.github/workflows/geosurvey-source-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          ref: geosurvey-jalan-next
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inventory and safely extract ZIP
+        run: python GeoSurveyJalan_Next/tools/audit_source_zip.py
+      - name: Upload audit report and extracted baseline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geosurvey-source-audit
+          path: |
+            GeoSurveyJalan_Next/audit/
+            GeoSurveyJalan_Next/source_snapshot/
+          if-no-files-found: warn
+          retention-days: 7
