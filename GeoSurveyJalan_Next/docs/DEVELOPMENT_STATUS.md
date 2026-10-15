@@ -8,13 +8,15 @@
 - [x] Validasi foto impor dan penghapusan penetapan koordinat/STA acak.
 - [x] Pembacaan GPS EXIF bila tersedia dan proyeksi awal ke STA ruas.
 - [x] Validasi geometri/GPS, HMM/Viterbi awal, dan konsistensi flag anomali.
-- [x] Penyimpanan foto IndexedDB dengan migrasi localStorage lama.
+- [x] Penyimpanan foto IndexedDB dengan migrasi localStorage lama; antrean hanya menyimpan metadata foto.
 - [x] Ekspor tidak lagi menampilkan klaim cloud/GEE dan pengesahan hard-coded yang belum terbukti.
 - [x] Tes unit awal dan pipeline CI.
+- [x] Lazy loading untuk modul tab dan modal.
 
-## Hasil validasi CI sebelumnya
-- [x] Run `38768831165`: instalasi dependensi, TypeScript check, tes unit, dan production build lulus.
-- [ ] Jalankan ulang validasi setelah penambahan EXIF GPS, IndexedDB, HMM/Viterbi, dan pemisahan bundle terbaru.
+## Hasil validasi CI
+- [x] Run `38768831165`: instalasi, TypeScript check, tes unit, dan production build lulus sebelum EXIF GPS dan penyimpanan IndexedDB.
+- [x] Run `38770468972`: instalasi, TypeScript check, 12 tes unit, dan production build lulus setelah EXIF GPS, IndexedDB, dan HMM/Viterbi.
+- [ ] Jalankan ulang validasi setelah pemisahan bundle terbaru.
 
 ## Pekerjaan lanjutan
 - [ ] Tes browser/manual dan uji pada data lapangan nyata.
