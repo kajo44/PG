@@ -56,7 +56,7 @@ export function exportPKRMStoCSV(road: RoadLink, photos: SurveyPhoto[]): string 
       escapeCSV(p.surveyor),
       escapeCSV(p.timestamp),
       escapeCSV(p.verified ? 'DIVERIFIKASI' : 'BELUM DIVERIFIKASI'),
-      escapeCSV(p.syncedToCloud ? 'YA (120TB Lake)' : 'OFFLINE LOCAL'),
+      escapeCSV(p.syncedToCloud ? 'TERCATAT TERSINKRON (perlu verifikasi server)' : 'BELUM TERSINKRON / LOKAL'),
       escapeCSV(p.notes),
     ].join(',');
   });
@@ -92,7 +92,7 @@ export function exportTrackGeoJSON(road: RoadLink, photos: SurveyPhoto[]): void 
       roadName: road.name,
       lengthKm: road.lengthKm,
       exportedAt: new Date().toISOString(),
-      bigDataSystem: '120 TB Cloud Synced Infrastructure',
+      integrationStatus: 'Backend cloud/GEE belum dikonfigurasi; metadata ini bukan bukti sinkronisasi.',
     },
     features: [
       {
