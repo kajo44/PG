@@ -304,7 +304,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Route size={15} className="text-indigo-600" />
-                    Panel Map Matching & Anomali (HMM Snap)
+                    Panel Map Matching & Anomali (proyeksi ruas dasar)
                   </span>
                   {isMobilePanelExpanded ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                 </button>
