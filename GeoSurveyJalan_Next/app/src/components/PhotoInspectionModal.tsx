@@ -160,7 +160,7 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
                   Form Penilaian Teknis Kondisi Lapangan
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-indigo-100 text-indigo-700">
-                  {photo.staLabel}
+                  {Number.isFinite(staMeters) ? formatSTA(staMeters) : 'STA tidak valid'}
                 </span>
               </div>
               <p className="text-xs text-slate-500">
@@ -193,7 +193,7 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
               </div>
               <div className="absolute bottom-2 left-2 right-2 p-2 rounded-xl bg-slate-900/85 backdrop-blur-md text-white text-[10px] space-y-0.5 border border-white/10">
                 <div className="font-mono text-slate-300">
-                  GPS: {photo.lat.toFixed(6)}, {photo.lng.toFixed(6)}
+                  GPS: {Number.isFinite(latitude) ? latitude.toFixed(6) : '—'}, {Number.isFinite(longitude) ? longitude.toFixed(6) : '—'}
                 </div>
                 <div className="text-slate-400">
                   Waktu: {new Date(photo.timestamp).toLocaleString('id-ID')}
