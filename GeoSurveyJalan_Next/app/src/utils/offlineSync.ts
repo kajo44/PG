@@ -98,7 +98,14 @@ export async function loadPhotosFromLocal(): Promise<SurveyPhoto[] | null> {
 
   try {
     const cached = await readIndexedRecord<SurveyPhoto[]>(STORAGE_KEYS.PHOTOS);
-    if (cached !== null && Array.isArray(cached)) return cached;
+    if (cached !== null && Array.isArray(cached)) {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.PHOTOS);
+      } catch {
+        // Keep IndexedDB data even when localStorage cleanup is blocked.
+      }
+      return cached;
+    }
 
     if (legacyPhotos !== null) {
       await writeIndexedRecord(STORAGE_KEYS.PHOTOS, legacyPhotos);
