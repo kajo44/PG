@@ -21,13 +21,6 @@ import {
   savePhotosToLocal,
 } from './utils/offlineSync';
 import { Header } from './components/Header';
-import { InteractiveMap } from './components/InteractiveMap';
-import { MapMatchingPanel } from './components/MapMatchingPanel';
-import { PhotoInspectionModal } from './components/PhotoInspectionModal';
-import { PhotoGalleryView } from './components/PhotoGalleryView';
-import { EarthEnginePanel } from './components/EarthEnginePanel';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { TrackEditorModal } from './components/TrackEditorModal';
 import {
   AlertTriangle,
   Camera,
@@ -42,6 +35,28 @@ import {
   Sparkles,
   Wand2,
 } from 'lucide-react';
+
+const InteractiveMap = React.lazy(() =>
+  import('./components/InteractiveMap').then((module) => ({ default: module.InteractiveMap }))
+);
+const MapMatchingPanel = React.lazy(() =>
+  import('./components/MapMatchingPanel').then((module) => ({ default: module.MapMatchingPanel }))
+);
+const PhotoInspectionModal = React.lazy(() =>
+  import('./components/PhotoInspectionModal').then((module) => ({ default: module.PhotoInspectionModal }))
+);
+const PhotoGalleryView = React.lazy(() =>
+  import('./components/PhotoGalleryView').then((module) => ({ default: module.PhotoGalleryView }))
+);
+const EarthEnginePanel = React.lazy(() =>
+  import('./components/EarthEnginePanel').then((module) => ({ default: module.EarthEnginePanel }))
+);
+const AnalyticsDashboard = React.lazy(() =>
+  import('./components/AnalyticsDashboard').then((module) => ({ default: module.AnalyticsDashboard }))
+);
+const TrackEditorModal = React.lazy(() =>
+  import('./components/TrackEditorModal').then((module) => ({ default: module.TrackEditorModal }))
+);
 
 const ExportModal = React.lazy(() =>
   import('./components/ExportModal').then((module) => ({ default: module.ExportModal }))
@@ -280,6 +295,7 @@ export default function App() {
 
       {/* Main Workspace Area */}
       <main className="flex-1 overflow-hidden relative">
+        <React.Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-slate-500">Memuat modul GeoSurvey...</div>}>
         {/* VIEW 1: Interactive Map & Live Map Matching Tracking */}
         {activeNavTab === 'map' && (
           <div className="w-full h-full flex flex-col md:flex-row relative">
@@ -402,34 +418,45 @@ export default function App() {
             />
           </div>
         )}
+        </React.Suspense>
       </main>
 
       {/* MODAL 1: Photo Inspection & Condition Grading (Technical Reporting) */}
-      <PhotoInspectionModal
-        photo={selectedPhoto}
-        selectedRoad={selectedRoad}
-        onClose={() => setSelectedPhoto(null)}
-        onSavePhotoEvaluation={handleSavePhotoEvaluation}
-      />
+      {selectedPhoto && (
+        <React.Suspense fallback={null}>
+          <PhotoInspectionModal
+            photo={selectedPhoto}
+            selectedRoad={selectedRoad}
+            onClose={() => setSelectedPhoto(null)}
+            onSavePhotoEvaluation={handleSavePhotoEvaluation}
+          />
+        </React.Suspense>
+      )}
 
       {/* MODAL 2: Automated PDF, CSV, and GeoJSON Report Export */}
-      <React.Suspense fallback={null}>
-        <ExportModal
-          isOpen={isExportModalOpen}
-          onClose={() => setIsExportModalOpen(false)}
-          selectedRoad={selectedRoad}
-          photos={photos.filter((p) => p.roadLinkId === selectedRoad.id)}
-          mapMatchResult={mapMatchResult}
-        />
-      </React.Suspense>
+      {isExportModalOpen && (
+        <React.Suspense fallback={null}>
+          <ExportModal
+            isOpen={true}
+            onClose={() => setIsExportModalOpen(false)}
+            selectedRoad={selectedRoad}
+            photos={photos.filter((p) => p.roadLinkId === selectedRoad.id)}
+            mapMatchResult={mapMatchResult}
+          />
+        </React.Suspense>
+      )}
 
       {/* MODAL 3: Manual Track Geometry Editor & GPS Anomaly Smoother */}
-      <TrackEditorModal
-        isOpen={isTrackEditorModalOpen}
-        onClose={() => setIsTrackEditorModalOpen(false)}
-        road={selectedRoad}
-        onSaveRoadGeometry={handleRoadGeometryChanged}
-      />
+      {isTrackEditorModalOpen && (
+        <React.Suspense fallback={null}>
+          <TrackEditorModal
+            isOpen={true}
+            onClose={() => setIsTrackEditorModalOpen(false)}
+            road={selectedRoad}
+            onSaveRoadGeometry={handleRoadGeometryChanged}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 }
