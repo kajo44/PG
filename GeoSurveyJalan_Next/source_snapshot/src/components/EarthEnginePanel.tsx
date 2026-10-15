@@ -41,16 +41,11 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
   onTriggerCloudSync,
   pendingSyncCount,
 }) => {
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [lastSyncText, setLastSyncText] = useState<string>('Baru saja (21:04)');
+  const [lastSyncText, setLastSyncText] = useState<string>('Belum tersinkron');
 
   const handleSyncClick = () => {
-    setIsSyncing(true);
-    setTimeout(() => {
-      onTriggerCloudSync();
-      setIsSyncing(false);
-      setLastSyncText(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
-    }, 1200);
+    onTriggerCloudSync();
+    setLastSyncText('Backend belum dikonfigurasi');
   };
 
   const processedPercent = Math.round(
@@ -68,13 +63,13 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
             </div>
             <div>
               <h2 className="text-sm font-bold flex items-center gap-2">
-                Google Earth Engine & Big Data Lake
+                Geospasial & Status Integrasi
                 <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono font-semibold">
-                  120 TB Active
+                  Simulasi lokal
                 </span>
               </h2>
               <p className="text-xs text-slate-300">
-                Pemrosesan Citra Satelit & Sinkronisasi Terdistribusi Skala Besar
+                Visualisasi demo; layanan eksternal belum terhubung
               </p>
             </div>
           </div>
@@ -140,7 +135,7 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
             <div className="flex items-center gap-2">
               <Server size={16} className="text-sky-400" />
               <span className="text-xs font-bold text-white">
-                Klaster Komputasi Terdistribusi (120 TB Lake)
+                Statistik pemrosesan simulasi
               </span>
             </div>
             <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
@@ -152,7 +147,7 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
           {/* Progress bar for 120 TB Processing */}
           <div>
             <div className="flex justify-between text-xs mb-1">
-              <span className="text-slate-400">Total Volume Terproses:</span>
+              <span className="text-slate-400">Volume simulasi:</span>
               <span className="font-mono text-sky-400 font-bold">
                 {cloudStats.processedTB.toFixed(1)} TB / {cloudStats.totalVolumeTB} TB ({processedPercent}%)
               </span>
@@ -174,15 +169,15 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
               </div>
             </div>
             <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-              <div className="text-[10px] text-slate-400">Cloud Bucket</div>
+              <div className="text-[10px] text-slate-400">Backend</div>
               <div className="text-[11px] font-mono font-bold text-sky-300 mt-0.5 truncate">
-                gs://pkrms-120tb
+                Belum dikonfigurasi
               </div>
             </div>
             <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-              <div className="text-[10px] text-slate-400">Region Backend</div>
+              <div className="text-[10px] text-slate-400">Status koneksi</div>
               <div className="text-[11px] font-mono font-bold text-slate-200 mt-0.5">
-                asia-southeast2
+                Belum terhubung
               </div>
             </div>
           </div>
@@ -198,12 +193,12 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
               </span>
             </div>
             <span className="text-[11px] text-slate-500">
-              Sinkronisasi Terakhir: {lastSyncText}
+              Status sinkronisasi: {lastSyncText}
             </span>
           </div>
 
           <p className="text-[11px] text-slate-500 leading-relaxed">
-            Data survei, foto teknis ber-STA, dan trek map matching disimpan otomatis di cache IndexedDB perangkat lapangan. Saat terhubung kembali ke jaringan, seluruh antrian di-stream secara instan ke backend 120TB.
+            Data survei dan antrean perubahan disimpan pada penyimpanan lokal browser (localStorage) yang memiliki batas kapasitas. Sinkronisasi server belum tersedia; antrean tidak akan dihapus sampai backend mengonfirmasi penerimaan data.
           </p>
 
           <div className="flex items-center justify-between pt-1">
@@ -216,11 +211,11 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
 
             <button
               onClick={handleSyncClick}
-              disabled={isSyncing}
+              disabled={false}
               className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5"
             >
-              <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
-              {isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Sekarang'}
+              <RefreshCw size={13}  />
+              Periksa status integrasi
             </button>
           </div>
         </div>
