@@ -44,16 +44,19 @@ import {
   Wand2,
 } from 'lucide-react';
 
+function photoSyncMetadata(photo: SurveyPhoto): Omit<SurveyPhoto, 'imageSrc' | 'thumbnailSrc'> {
+  const { imageSrc: _imageSrc, thumbnailSrc: _thumbnailSrc, ...metadata } = photo;
+  return metadata;
+}
+
 export default function App() {
   // Road Links State
   const [roads, setRoads] = useState<RoadLink[]>(SAMPLE_ROAD_LINKS);
   const [selectedRoad, setSelectedRoad] = useState<RoadLink>(SAMPLE_ROAD_LINKS[0]);
 
-  // Inspection Photos State (with offline local storage fallback)
-  const [photos, setPhotos] = useState<SurveyPhoto[]>(() => {
-    const cached = loadPhotosFromLocal();
-    return cached && cached.length > 0 ? cached : INITIAL_SURVEY_PHOTOS;
-  });
+  // Inspection Photos State. IndexedDB is preferred because photo data URLs can exceed localStorage quota.
+  const [photos, setPhotos] = useState<SurveyPhoto[]>(INITIAL_SURVEY_PHOTOS);
+  const [photoStorageReady, setPhotoStorageReady] = useState<boolean>(false);
 
   // Selected Photo for Technical Evaluation Modal
   const [selectedPhoto, setSelectedPhoto] = useState<SurveyPhoto | null>(null);
@@ -103,10 +106,32 @@ export default function App() {
   // Mobile Bottom Sheet Collapse
   const [isMobilePanelExpanded, setIsMobilePanelExpanded] = useState<boolean>(false);
 
-  // Save photos locally when updated
+  // Load persisted photos before writing initial demo state over them.
   useEffect(() => {
-    savePhotosToLocal(photos);
-  }, [photos]);
+    let cancelled = false;
+    loadPhotosFromLocal()
+      .then((cached) => {
+        if (!cancelled && cached !== null) setPhotos(cached);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          const message = error instanceof Error ? error.message : 'Penyimpanan lokal tidak dapat dibaca.';
+          setSyncNotice(`Gagal memuat data foto lokal: ${message}`);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setPhotoStorageReady(true);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Persist changes only after the initial load has completed.
+  useEffect(() => {
+    if (!photoStorageReady) return;
+    void savePhotosToLocal(photos).then((saved) => {
+      if (!saved) setSyncNotice('Perubahan foto ada di memori aplikasi, tetapi penyimpanan browser gagal. Ekspor data sebelum menutup halaman.');
+    });
+  }, [photos, photoStorageReady]);
 
   // When selected road changes, regenerate GPS simulation and execute map matching
   const handleSelectRoad = (newRoad: RoadLink) => {
@@ -147,13 +172,14 @@ export default function App() {
     const nextPhotos = photos.map((p) => (p.id === updatedPhoto.id ? updatedPhoto : p));
     setPhotos(nextPhotos);
 
-    // Queue for cloud sync
-    queueForCloudSync({
+    // Queue metadata only; image bytes are stored separately in IndexedDB.
+    const queued = queueForCloudSync({
       id: `sync-eval-${Date.now()}`,
       type: 'PHOTO_EVALUATION',
-      payload: updatedPhoto,
+      payload: photoSyncMetadata(updatedPhoto),
       timestamp: new Date().toISOString(),
     });
+    if (!queued) setSyncNotice('Penilaian diperbarui pada layar, tetapi antrean lokal gagal disimpan. Ekspor data sebelum menutup halaman.');
     setPendingSyncCount(getPendingSyncCount());
   };
 
@@ -162,12 +188,13 @@ export default function App() {
     const nextPhotos = [newPhoto, ...photos];
     setPhotos(nextPhotos);
 
-    queueForCloudSync({
+    const queued = queueForCloudSync({
       id: `sync-new-photo-${Date.now()}`,
       type: 'NEW_PHOTO',
-      payload: newPhoto,
+      payload: photoSyncMetadata(newPhoto),
       timestamp: new Date().toISOString(),
     });
+    if (!queued) setSyncNotice('Foto diimpor pada layar, tetapi antrean lokal gagal disimpan. Ekspor data sebelum menutup halaman.');
     setPendingSyncCount(getPendingSyncCount());
     setSelectedPhoto(newPhoto); // open for immediate evaluation
   };
@@ -190,12 +217,13 @@ export default function App() {
     const matched = executeMapMatching(rawGPSPoints, updatedRoad);
     setMapMatchResult(matched);
 
-    queueForCloudSync({
+    const queued = queueForCloudSync({
       id: `sync-geom-${Date.now()}`,
       type: 'TRACK_EDIT',
       payload: newCoords,
       timestamp: new Date().toISOString(),
     });
+    if (!queued) setSyncNotice('Geometri diperbarui pada layar, tetapi antrean lokal gagal disimpan. Ekspor data sebelum menutup halaman.');
     setPendingSyncCount(getPendingSyncCount());
   };
 
