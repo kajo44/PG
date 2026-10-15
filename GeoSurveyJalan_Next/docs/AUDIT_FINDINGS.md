@@ -1,61 +1,55 @@
 # Temuan Audit Awal — PKRMS GeoSurvey Pro
 
-Audit ini didasarkan pada inspeksi statis arsip yang berhasil diekstrak oleh GitHub Actions. Temuan di bawah adalah kondisi kode sumber awal, bukan klaim bahwa fitur sudah diuji di perangkat pengguna.
+Audit ini didasarkan pada inspeksi statis arsip yang berhasil diekstrak oleh GitHub Actions. Temuan di bawah adalah kondisi kode sumber awal, bukan klaim bahwa seluruh fitur telah diuji di perangkat pengguna.
 
 ## Ringkasan baseline
 
 - Teknologi sumber: React + TypeScript + Vite (bukan aplikasi Python).
-- Struktur arsip: 33 entri, sekitar 254.501 byte data tidak terkompresi.
-- Area utama: peta interaktif, panel map matching, galeri/inspeksi foto, dashboard analitik, panel Earth Engine, ekspor PDF/CSV/GeoJSON, dan editor trek.
+- Arsip sumber: 33 entri, sekitar 254.501 byte data tidak terkompresi.
+- Area utama: peta interaktif, panel map matching, galeri/inspeksi foto, dashboard analitik, panel layer peta, ekspor PDF/CSV/GeoJSON, dan editor trek.
 - Data awal berasal dari `src/data/mockRoads.ts`; lintasan GPS dapat dibuat melalui `generateSimulatedRawGPS`.
 - Penyimpanan foto lokal menggunakan `localStorage`.
-- Manifest menyebut `@google/genai`, tetapi adanya paket tersebut sendiri tidak membuktikan bahwa layanan AI telah terhubung.
+- Paket `@google/genai` pada manifest bukan bukti bahwa layanan AI telah terhubung.
 
 ## Temuan prioritas tinggi
 
-### 1. Status sinkronisasi dapat menyesatkan dan berisiko menghilangkan antrean
+### 1. Status sinkronisasi dan kehilangan antrean
+Kode awal menghapus antrean lokal saat tombol sync ditekan tanpa konfirmasi backend. Kode yang sudah diperbarui tidak lagi menghapus antrean dan memberi pesan bahwa backend belum dikonfigurasi. Sinkronisasi nyata tetap belum tersedia.
 
-Pada `src/App.tsx`, `handleTriggerCloudSync` memanggil `clearSyncQueue()` lalu mengurangi/memperbarui angka statistik lokal. Tidak terlihat permintaan jaringan ke backend dalam alur ini. Akibatnya, antrean lokal dapat dihapus tanpa bukti server menerima data.
+### 2. Label cloud/GEE tidak didukung implementasi
+UI dan ekspor awal menyatakan “120 TB Active”, sinkronisasi cloud, serta integrasi Google Earth Engine. Alur yang diperiksa menggunakan statistik lokal/simulasi dan layer tile peta pihak ketiga, bukan koneksi GEE yang terverifikasi. Label utama dan metadata ekspor telah diluruskan untuk menunjukkan status demo/belum terhubung.
 
-**Tindakan:** jangan hapus antrean sebelum respons backend terkonfirmasi; sampai backend tersedia, tandai fitur sebagai simulasi/lokal dan jangan laporkan sukses sinkronisasi.
+### 3. Map matching belum HMM/Viterbi
+Kode awal memproyeksikan setiap titik GPS ke segmen terdekat secara independen. Tidak ada perhitungan probabilitas transisi antar kandidat atau dekode Viterbi. Label dan komentar telah dikoreksi; metode yang ada disebut proyeksi segmen terdekat. HMM/Viterbi masih menjadi pekerjaan lanjutan.
 
-### 2. Label cloud/GEE menyatakan kemampuan yang belum terbukti
+### 4. Status anomali tidak konsisten
+Awalnya lonjakan kecepatan dapat mengisi alasan anomali tanpa mengaktifkan flag `isAnomaly`. Flag kini ikut diaktifkan pada kondisi tersebut. Tes unit awal mencakup kasus lonjakan kecepatan.
 
-Panel dan ekspor menampilkan label seperti “120 TB Active”, “120 TB Cloud Synced Infrastructure”, serta klaim Google Earth Engine. Implementasi yang ditinjau menampilkan statistik lokal/simulasi dan overlay peta yang dijelaskan di kode sebagai simulasi; tidak ditemukan bukti koneksi backend/cloud pada alur yang diperiksa.
+### 5. Impor foto menciptakan lokasi acak
+Kode awal menetapkan STA dan koordinat secara acak saat foto diimpor. Alur itu telah diubah agar tidak menghasilkan lokasi acak; nilai awal menggunakan titik awal ruas dan diberi catatan bahwa STA/koordinat harus diverifikasi. Validasi tipe gambar, batas ukuran 15 MB, geometri ruas, dan kesalahan pembacaan ditambahkan. **EXIF/GPS otomatis dan penentuan STA yang benar belum diimplementasikan.**
 
-**Tindakan:** tampilkan status “Simulasi / belum terhubung” dengan jelas sampai konfigurasi dan pemeriksaan koneksi nyata tersedia. Jangan memasukkan klaim sinkronisasi/cloud yang belum terverifikasi ke laporan resmi.
-
-### 3. Algoritme map matching belum menerapkan HMM/Viterbi secara sekuensial
-
-Fungsi `executeMapMatching` memproyeksikan setiap titik GPS ke segmen garis dengan jarak terdekat. Walaupun komentar menyebut Hidden Markov Model dan emission probability, alur yang ditinjau tidak menghitung probabilitas transisi antarkandidat atau menjalankan Viterbi.
-
-**Tindakan:** namai metode saat ini sebagai nearest-segment projection, tambahkan validasi input dan kasus tepi, lalu rancang HMM/Viterbi dengan kandidat, emisi, transisi, dan STA kumulatif yang dapat diuji.
-
-### 4. Flag anomali tidak konsisten dengan alasan anomali
-
-Pada `executeMapMatching`, `isAnomaly` ditentukan dari jarak terhadap ambang. Namun, lonjakan kecepatan juga dapat mengisi `anomalyReason` tanpa mengubah `isAnomaly` menjadi `true`.
-
-**Tindakan:** gabungkan kriteria jarak dan lonjakan kecepatan ke dalam satu status anomali konsisten dan uji kedua kondisi tersebut.
+### 6. Informasi pengesahan pada laporan tidak valid
+Ekspor PDF awal menyertakan nama pejabat, NIP, dan kode lisensi yang ditanam di kode, serta status cloud/HMM yang tidak didukung. Nilai pengesahan tersebut telah diganti menjadi belum ditentukan/draf, dan status integrasi dinyatakan belum terhubung.
 
 ## Risiko penting lain
 
-- `localStorage` memiliki kapasitas terbatas; foto yang disimpan sebagai data URL dapat memenuhi kuota. Penyimpanan foto perlu dipindahkan ke IndexedDB atau penyimpanan file terkelola, dengan fallback dan pesan kegagalan.
-- Fungsi ekspor CSV/GeoJSON harus diuji untuk data kosong, karakter khusus, koordinat invalid, serta foto yang berasal dari ruas berbeda. Pastikan filter ekspor mengikuti ruas yang dipilih.
-- Fungsi proyeksi geometri menggunakan pendekatan equirectangular untuk proyeksi lokal; batas penggunaan, validasi koordinat, dan segmen degenerat perlu ditangani.
-- Tidak ada bukti dari arsip ini bahwa build portable desktop tersedia; sumber adalah aplikasi web berbasis Vite. Distribusi desktop, jika dibutuhkan, memerlukan keputusan arsitektur terpisah.
-- Perlu memeriksa semua pemakaian API key. Kunci rahasia tidak boleh dimasukkan ke bundle frontend; integrasi Gemini atau layanan cloud sebaiknya melalui konfigurasi aman/server.
+- `localStorage` memiliki batas kapasitas; foto sebagai data URL dapat memenuhi kuota. Pembatasan ukuran impor ditambahkan, tetapi migrasi ke IndexedDB atau penyimpanan file terkelola masih diperlukan.
+- Ekspor CSV/GeoJSON perlu diuji dengan data kosong, karakter khusus, koordinat tidak valid, dan foto lintas ruas.
+- Proyeksi geometri menggunakan pendekatan equirectangular lokal; batas penggunaan, segmen degenerat, dan validasi CRS masih perlu ditinjau.
+- Aplikasi dalam ZIP adalah web app Vite. Paket desktop/portable belum tersedia.
+- Paket AI yang tercantum belum menunjukkan alur inferensi nyata. API key rahasia tidak boleh dimasukkan ke bundle frontend; integrasi AI/cloud perlu desain server-side yang aman.
 
-## Urutan perbaikan yang disarankan
+## Urutan perbaikan selanjutnya
 
-1. Hentikan penghapusan antrean sinkronisasi palsu dan luruskan status UI/ekspor.
-2. Validasi input foto, koordinat, geometri ruas, dan data ekspor.
-3. Perbaiki konsistensi penandaan anomali.
-4. Tambahkan pengujian unit untuk jarak, proyeksi segmen, STA, dan map matching.
-5. Implementasikan HMM/Viterbi hanya setelah kontrak data dan dataset uji disepakati.
-6. Rancang penyimpanan offline yang layak untuk foto berukuran besar.
-7. Hubungkan backend/GEE hanya dengan konfigurasi dan bukti respons nyata.
-8. Jalankan lint, build, serta uji fungsional; catat hasilnya tanpa menyamakan build sukses dengan kebenaran fungsional.
+1. Selesaikan lint, tes, dan build dari folder kerja `app/`.
+2. Tambahkan pengujian untuk geometri degenerat, input invalid, ekspor, dan penyimpanan.
+3. Implementasikan EXIF/GPS yang benar dan alur koreksi lokasi/STA secara eksplisit.
+4. Migrasikan penyimpanan foto dari localStorage ke penyimpanan yang sesuai dan tidak mudah kehilangan data.
+5. Implementasikan HMM/Viterbi dengan kandidat, emisi, transisi, STA kumulatif, serta dataset uji.
+6. Rancang backend dan sinkronisasi yang menghapus antrean hanya setelah acknowledgement yang valid.
+7. Hubungkan GEE/AI hanya melalui konfigurasi yang benar dan respons layanan yang dapat diverifikasi.
+8. Uji terhadap data jalan nyata dan aturan PKRMS sebelum penggunaan operasional.
 
 ## Batas audit
 
-Audit ini statis. Hasil lint dan build dari CI akan dicatat terpisah. Kebenaran geospasial, kinerja, sinkronisasi jaringan, keamanan, dan kelayakan operasional belum dapat dinyatakan lulus sebelum pengujian khusus.
+Audit ini menggabungkan inspeksi statis dan tes otomatis yang sedang dijalankan. Kebenaran geospasial, kinerja, sinkronisasi jaringan, keamanan operasional, dan kesesuaian PKRMS belum dapat dinyatakan lulus tanpa pengujian khusus.
