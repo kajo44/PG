@@ -95,7 +95,7 @@ export async function exportPKRMSReportPDF(
   doc.setFont('helvetica', 'bold');
   doc.text(currentDate, 168, 34);
   doc.text(inspector.split(' ')[0] + ' ' + (inspector.split(' ')[1] || ''), 168, 42);
-  doc.text(mapMatchResult ? `${mapMatchResult.confidenceScore}% (Proyeksi ruas)` : 'Belum dihitung', 168, 50);
+  doc.text(mapMatchResult ? `${mapMatchResult.confidenceScore}% (HMM/Viterbi)` : 'Belum dihitung', 168, 50);
   doc.text('Belum terhubung', 168, 58);
 
   // Executive condition summary cards
