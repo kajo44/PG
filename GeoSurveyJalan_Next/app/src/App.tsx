@@ -15,7 +15,6 @@ import {
 } from './data/mockRoads';
 import { executeMapMatching, generateSimulatedRawGPS } from './utils/mapMatching';
 import {
-  clearSyncQueue,
   getPendingSyncCount,
   loadPhotosFromLocal,
   queueForCloudSync,
@@ -91,8 +90,9 @@ export default function App() {
 
   // Big Data Lake (120 TB) & Distributed Cloud Pipeline
   const [cloudStats, setCloudStats] = useState<CloudPipelineStats>(INITIAL_CLOUD_STATS);
-  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
+  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(true);
   const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => getPendingSyncCount());
+  const [syncNotice, setSyncNotice] = useState<string | null>(null);
 
   // Export Modal State
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
@@ -120,11 +120,17 @@ export default function App() {
 
   // Re-run Map Matching with custom parameters
   const handleRunMapMatching = (options: { sigmaZ: number; anomalyThresholdM: number }) => {
-    const result = executeMapMatching(rawGPSPoints, selectedRoad, {
-      sigmaZ: options.sigmaZ,
-      anomalyDistanceThresholdM: options.anomalyThresholdM,
-    });
-    setMapMatchResult(result);
+    try {
+      const result = executeMapMatching(rawGPSPoints, selectedRoad, {
+        sigmaZ: options.sigmaZ,
+        anomalyDistanceThresholdM: options.anomalyThresholdM,
+      });
+      setMapMatchResult(result);
+      setSyncNotice(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Kesalahan tidak dikenal saat map matching.';
+      setSyncNotice(`Map matching gagal: ${message}`);
+    }
   };
 
   // Generate fresh simulated GPS pings
@@ -168,6 +174,10 @@ export default function App() {
 
   // Update Road Centerline Geometry from map drag or manual editor
   const handleRoadGeometryChanged = (newCoords: [number, number][]) => {
+    if (newCoords.length < 2 || newCoords.some(([lat, lng]) => !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180)) {
+      setSyncNotice('Geometri ruas tidak valid. Minimal dua koordinat latitude/longitude yang valid diperlukan. Perubahan tidak disimpan.');
+      return;
+    }
     const updatedRoad: RoadLink = {
       ...selectedRoad,
       coordinates: newCoords,
@@ -189,15 +199,15 @@ export default function App() {
     setPendingSyncCount(getPendingSyncCount());
   };
 
-  // Trigger Cloud Sync for 120TB distributed pipeline
+  // Do not delete pending changes or report success until a configured backend acknowledges them.
   const handleTriggerCloudSync = () => {
-    clearSyncQueue();
-    setPendingSyncCount(0);
-    setCloudStats((prev) => ({
-      ...prev,
-      processedTB: Math.min(prev.totalVolumeTB, prev.processedTB + 0.4),
-      lastSyncTimestamp: new Date().toISOString(),
-    }));
+    const pending = getPendingSyncCount();
+    setPendingSyncCount(pending);
+    setSyncNotice(
+      pending > 0
+        ? `Sinkronisasi server belum dikonfigurasi. ${pending} perubahan tetap tersimpan lokal dan tidak dihapus.`
+        : 'Belum ada perubahan dalam antrean. Backend sinkronisasi belum dikonfigurasi.'
+    );
   };
 
   // Jump vehicle to anomaly point on map
@@ -226,6 +236,16 @@ export default function App() {
         pendingSyncCount={pendingSyncCount}
         onSyncNow={handleTriggerCloudSync}
       />
+
+      {syncNotice && (
+        <div role="status" aria-live="polite" className="fixed right-4 top-20 z-50 max-w-md rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 shadow-lg">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+            <p className="flex-1">{syncNotice}</p>
+            <button type="button" onClick={() => setSyncNotice(null)} className="rounded px-2 py-1 font-bold hover:bg-amber-100" aria-label="Tutup pemberitahuan">×</button>
+          </div>
+        </div>
+      )}
 
       {/* Main Workspace Area */}
       <main className="flex-1 overflow-hidden relative">
@@ -283,7 +303,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Route size={15} className="text-indigo-600" />
-                    Panel Map Matching & Anomali (HMM Snap)
+                    Panel Map Matching & Anomali (proyeksi ruas dasar)
                   </span>
                   {isMobilePanelExpanded ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                 </button>
@@ -336,7 +356,7 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 4: Google Earth Engine & 120 TB Big Data Cloud Processing */}
+        {/* VIEW 4: Geospatial layer demo and integration status */}
         {activeNavTab === 'earthengine' && (
           <div className="w-full h-full p-3 sm:p-5">
             <EarthEnginePanel
