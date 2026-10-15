@@ -1,0 +1,10 @@
+{
+  "name": "PKRMS GeoSurvey Pro",
+  "description": "Sistem Pengelolaan Jalan Daerah (PKRMS) cerdas dengan map matching akurat, pelacakan real-time, inspeksi foto per STA, integrasi Google Earth Engine, dan pelaporan otomatis PDF/CSV.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -4,7 +4,7 @@
   "archive_sha256": "6244179f0a4628a9325c0609700a222b7615c1762e48aa3977621bd0510e97b7",
   "entry_count": 33,
   "uncompressed_bytes": 254501,
-  "extracted_to": "GeoSurveyJalan_Next/source_snapshot",
+  "extracted_to": "GeoSurveyJalan_Next/source_original",
   "files": [
     {
       "path": "metadata.json",
