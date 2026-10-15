@@ -1,5 +1,5 @@
 import { RoadLink } from '../types/pkrms';
-import { haversineDistanceMeters, projectPointOntoSegment } from './geoMath';
+import { projectPointOntoSegment } from './geoMath';
 import { buildRoadCache } from './mapMatching';
 
 export interface PhotoRoadLocation {
