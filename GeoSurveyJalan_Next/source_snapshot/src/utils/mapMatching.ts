@@ -118,8 +118,7 @@ export function executeMapMatching(
         seg.endCoord[1]
       );
 
-      // Emission probability weight penalty:
-      // In HMM: emission = exp(-0.5 * (dist / sigma)^2)
+      // Select the nearest projection independently for each point (no HMM/Viterbi transition model).
       if (proj.distanceM < bestDist) {
         bestDist = proj.distanceM;
         bestSnappedLat = proj.snappedLat;
