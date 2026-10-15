@@ -16,16 +16,17 @@
 ## Fitur dan perbaikan yang sudah ada di workspace
 
 - Peta interaktif dan visualisasi trek.
-- Map matching HMM/Viterbi untuk satu geometri ruas: kandidat proyeksi, skor emisi berbasis jarak, skor transisi berbasis jarak/STA, dan dekode jalur.
+- Map matching HMM/Viterbi untuk satu geometri ruas.
 - Validasi dasar koordinat, timestamp, parameter algoritme, serta status anomali kecepatan.
 - Galeri/penilaian foto dengan validasi tipe dan ukuran berkas.
+- Pembacaan GPS EXIF bila tersedia, pemetaan ke STA kumulatif terdekat, dan peringatan bila foto jauh dari garis ruas.
 - Penyimpanan foto IndexedDB dengan migrasi cache localStorage lama; antrean sinkronisasi metadata tetap lokal.
 - Panel layer peta demo, analitik berbasis data contoh, dan ekspor PDF/CSV/GeoJSON.
 - Pemberitahuan bahwa backend cloud belum dikonfigurasi dan antrean tidak boleh dihapus sebelum acknowledgement.
 
 ## Batasan yang belum dianggap selesai
 
-- Pembacaan EXIF/GPS otomatis dan penempatan foto/STA yang tervalidasi.
+- Koreksi manual foto/STA yang nyaman dan verifikasi terhadap EXIF yang salah atau tidak ada.
 - Backend persisten untuk ruas, foto, dan sinkronisasi multi-perangkat.
 - Integrasi Google Earth Engine dan inferensi AI yang benar-benar terhubung.
 - Map matching jaringan multi-ruas/interseksi dan kalibrasi skor dengan data nyata.
