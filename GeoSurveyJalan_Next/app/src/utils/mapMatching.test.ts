@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { formatSTA, haversineDistanceMeters, parseSTA, projectPointOntoSegment } from './geoMath';
 import { executeMapMatching } from './mapMatching';
+import { locatePhotoOnRoad } from './photoLocation';
 import type { GPSPoint, RoadLink } from '../types/pkrms';
 
 const road: RoadLink = {
@@ -44,6 +45,18 @@ describe('geoMath', () => {
     const projection = projectPointOntoSegment(0, -0.01, 0, 0, 0, 0.02);
     assert.equal(projection.t, 0);
     assert.ok(projection.distanceM > 1_000);
+  });
+});
+
+describe('photoLocation', () => {
+  it('converts EXIF GPS coordinates to cumulative road STA', () => {
+    const location = locatePhotoOnRoad(0.00001, 0.005, road);
+    assert.ok(location.sta > 500 && location.sta < 620);
+    assert.ok(location.distanceM < 2);
+  });
+
+  it('rejects invalid EXIF coordinates', () => {
+    assert.throws(() => locatePhotoOnRoad(100, 0, road), /Koordinat GPS foto tidak valid/);
   });
 });
 
