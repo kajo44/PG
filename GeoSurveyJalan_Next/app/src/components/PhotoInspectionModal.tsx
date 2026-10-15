@@ -6,6 +6,7 @@ import {
   RoadLink,
   SurveyPhoto,
 } from '../types/pkrms';
+import { formatSTA } from '../utils/geoMath';
 import {
   AlertCircle,
   Camera,
@@ -56,6 +57,9 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
   const [notes, setNotes] = useState<string>(photo.notes);
   const [verified, setVerified] = useState<boolean>(photo.verified);
   const [laneWidth, setLaneWidth] = useState<number>(photo.laneWidthMeters);
+  const [latitude, setLatitude] = useState<number>(photo.lat);
+  const [longitude, setLongitude] = useState<number>(photo.lng);
+  const [staMeters, setStaMeters] = useState<number>(photo.sta);
 
   // Selected defect types
   const [selectedDefects, setSelectedDefects] = useState<string[]>(
@@ -103,6 +107,16 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
   };
 
   const handleSave = () => {
+    const maxSta = Math.max(0, selectedRoad.lengthKm * 1000);
+    if (!Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180) {
+      window.alert('Latitude/longitude tidak valid. Gunakan latitude -90 sampai 90 dan longitude -180 sampai 180.');
+      return;
+    }
+    if (!Number.isFinite(staMeters) || staMeters < 0 || staMeters > maxSta + 10) {
+      window.alert(`STA harus berada pada rentang 0 sampai sekitar ${Math.round(maxSta)} meter untuk ruas terpilih.`);
+      return;
+    }
+
     const defectItems: DefectItem[] = selectedDefects.map((name) => ({
       type: name,
       severity: condition === 'RUSAK_BERAT' ? 'Tinggi' : condition === 'RUSAK_RINGAN' ? 'Sedang' : 'Rendah',
@@ -117,6 +131,10 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
       sdiScore,
       pciScore,
       laneWidthMeters: laneWidth,
+      lat: latitude,
+      lng: longitude,
+      sta: Math.round(staMeters),
+      staLabel: formatSTA(staMeters),
       defects: defectItems,
       notes,
       verified,
@@ -195,6 +213,50 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
                   onChange={(e) => setLaneWidth(parseFloat(e.target.value) || 0)}
                   className="w-20 px-2 py-1 text-right font-mono font-bold bg-white border border-slate-200 rounded-lg text-slate-800"
                 />
+              </div>
+
+              <div className="pt-2 border-t border-slate-200 space-y-2">
+                <div className="text-[11px] font-bold uppercase tracking-wide text-slate-600">Koreksi Lokasi dan STA</div>
+                <label className="flex items-center justify-between gap-2">
+                  <span className="text-slate-500 font-medium">Latitude</span>
+                  <input
+                    aria-label="Latitude foto"
+                    type="number"
+                    min="-90"
+                    max="90"
+                    step="0.000001"
+                    value={Number.isFinite(latitude) ? latitude : ''}
+                    onChange={(e) => setLatitude(e.target.value === '' ? Number.NaN : Number(e.target.value))}
+                    className="w-32 px-2 py-1 text-right font-mono bg-white border border-slate-200 rounded-lg text-slate-800"
+                  />
+                </label>
+                <label className="flex items-center justify-between gap-2">
+                  <span className="text-slate-500 font-medium">Longitude</span>
+                  <input
+                    aria-label="Longitude foto"
+                    type="number"
+                    min="-180"
+                    max="180"
+                    step="0.000001"
+                    value={Number.isFinite(longitude) ? longitude : ''}
+                    onChange={(e) => setLongitude(e.target.value === '' ? Number.NaN : Number(e.target.value))}
+                    className="w-32 px-2 py-1 text-right font-mono bg-white border border-slate-200 rounded-lg text-slate-800"
+                  />
+                </label>
+                <label className="flex items-center justify-between gap-2">
+                  <span className="text-slate-500 font-medium">STA dari awal ruas (m)</span>
+                  <input
+                    aria-label="STA foto dalam meter"
+                    type="number"
+                    min="0"
+                    max={Math.round(selectedRoad.lengthKm * 1000)}
+                    step="1"
+                    value={Number.isFinite(staMeters) ? staMeters : ''}
+                    onChange={(e) => setStaMeters(e.target.value === '' ? Number.NaN : Number(e.target.value))}
+                    className="w-32 px-2 py-1 text-right font-mono bg-white border border-slate-200 rounded-lg text-slate-800"
+                  />
+                </label>
+                <p className="text-[10px] text-amber-700">Periksa nilai EXIF dan STA secara manual sebelum verifikasi teknis.</p>
               </div>
 
               <div className="flex justify-between items-center">
