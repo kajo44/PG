@@ -7,6 +7,7 @@ on:
     paths:
       - 'pkrms-geosurvey-pro.zip'
       - 'GeoSurveyJalan_Next/tools/audit_source_zip.py'
+      - 'GeoSurveyJalan_Next/docs/AUDIT_FINDINGS.md'
       - '.github/workflows/geosurvey-source-audit.yml'
   workflow_dispatch:
 
@@ -33,14 +34,22 @@ jobs:
         with:
           node-version: '22'
       - name: Install source dependencies
+        id: install
         working-directory: GeoSurveyJalan_Next/source_snapshot
         run: npm install --no-audit --no-fund
         continue-on-error: true
       - name: TypeScript check
+        id: typecheck
         working-directory: GeoSurveyJalan_Next/source_snapshot
         run: npm run lint
         continue-on-error: true
+      - name: Unit tests
+        id: tests
+        working-directory: GeoSurveyJalan_Next/source_snapshot
+        run: npm test
+        continue-on-error: true
       - name: Production build
+        id: build
         working-directory: GeoSurveyJalan_Next/source_snapshot
         run: npm run build
         continue-on-error: true
@@ -53,6 +62,18 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "Add extracted GeoSurvey Jalan Next source baseline"
             git push origin HEAD:geosurvey-jalan-next
+          fi
+      - name: Fail workflow if any validation step failed
+        if: always()
+        env:
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+          TEST_OUTCOME: ${{ steps.tests.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          printf 'Install: %s\\nTypeScript: %s\\nTests: %s\\nBuild: %s\\n' "$INSTALL_OUTCOME" "$TYPECHECK_OUTCOME" "$TEST_OUTCOME" "$BUILD_OUTCOME"
+          if [[ "$INSTALL_OUTCOME" != "success" || "$TYPECHECK_OUTCOME" != "success" || "$TEST_OUTCOME" != "success" || "$BUILD_OUTCOME" != "success" ]]; then
+            exit 1
           fi
       - name: Upload audit report and extracted baseline
         if: always()
