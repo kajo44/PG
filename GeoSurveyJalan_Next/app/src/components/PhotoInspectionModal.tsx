@@ -120,7 +120,7 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
       defects: defectItems,
       notes,
       verified,
-      syncedToCloud: true, // will trigger distributed cloud sync
+      syncedToCloud: false, // remains pending until a real backend acknowledges the upload
     };
 
     onSavePhotoEvaluation(updated);
@@ -372,7 +372,7 @@ export const PhotoInspectionModal: React.FC<PhotoInspectionModalProps> = ({
                 <span>Verifikasi dan Setujui Hasil Penilaian Lapangan</span>
               </label>
               <span className="text-[11px] text-emerald-700 flex items-center gap-1">
-                <Cloud size={13} /> Sinkronisasi Otomatis Cloud 120TB
+                <Cloud size={13} /> Tersimpan lokal; menunggu backend sinkronisasi
               </span>
             </div>
           </div>
