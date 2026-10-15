@@ -4,7 +4,7 @@ Aplikasi web untuk mendukung survei kondisi jalan, inspeksi foto per STA, visual
 
 ## Status fungsional saat ini
 
-**Ini masih baseline pengembangan.** Dataset jalan dan sebagian statistik adalah data demo. Backend sinkronisasi belum dikonfigurasi; Google Earth Engine belum terhubung. Impor foto membaca GPS EXIF bila tersedia dan menghitung STA awal melalui proyeksi ke geometri ruas; hasil tetap perlu diverifikasi. Jika EXIF GPS tidak tersedia, koordinat dan STA awal bersifat sementara.
+**Ini masih baseline pengembangan.** Dataset jalan dan sebagian statistik adalah data demo. Backend sinkronisasi belum dikonfigurasi; Google Earth Engine belum terhubung. Impor foto membaca GPS EXIF bila tersedia dan menghitung STA awal melalui proyeksi ke geometri ruas. Form inspeksi menyediakan koreksi manual latitude/longitude/STA. Semua hasil tetap perlu diverifikasi. Jika EXIF GPS tidak tersedia, koordinat dan STA awal bersifat sementara.
 
 Map matching menggunakan kandidat proyeksi segmen, skor emisi berbasis jarak GPS, skor transisi berbasis selisih jarak/STA, dan dekode jalur Viterbi pada satu geometri ruas. Model ini masih perlu divalidasi pada data lapangan dan tidak menggantikan pemeriksaan teknis.
 
@@ -17,7 +17,7 @@ Map matching menggunakan kandidat proyeksi segmen, skor emisi berbasis jarak GPS
 ## Menjalankan aplikasi
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
