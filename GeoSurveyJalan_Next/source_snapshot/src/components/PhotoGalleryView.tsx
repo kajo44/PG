@@ -60,6 +60,21 @@ export const PhotoGalleryView: React.FC<PhotoGalleryViewProps> = ({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      window.alert('File tidak dikenali sebagai gambar. Pilih berkas foto seperti JPG, PNG, atau WEBP.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      window.alert('Ukuran foto melebihi 15 MB. Kompres foto terlebih dahulu agar penyimpanan lokal tidak cepat penuh.');
+      e.target.value = '';
+      return;
+    }
+    if (!selectedRoad.coordinates || selectedRoad.coordinates.length < 2) {
+      window.alert('Ruas terpilih belum memiliki geometri valid. Foto belum diimpor.');
+      e.target.value = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -93,6 +108,9 @@ export const PhotoGalleryView: React.FC<PhotoGalleryViewProps> = ({
       };
 
       onImportNewPhoto(newPhoto);
+    };
+    reader.onerror = () => {
+      window.alert('Foto gagal dibaca. Periksa berkas dan coba lagi. Data foto tidak diubah.');
     };
 
     reader.readAsDataURL(file);
