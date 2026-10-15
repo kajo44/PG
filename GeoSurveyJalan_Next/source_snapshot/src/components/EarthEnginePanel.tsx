@@ -84,27 +84,27 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
             }`}
           >
             {isOfflineMode ? <WifiOff size={13} /> : <Wifi size={13} />}
-            {isOfflineMode ? 'Mode Offline Aktif' : 'Cloud Online'}
+            {isOfflineMode ? 'Mode Lokal Aktif' : 'Mode Online (demo)'}
           </button>
         </div>
       </div>
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* Google Earth Engine Multispectral Layer Switcher */}
+        {/* Demo imagery selector; these layers are not GEE-derived products */}
         <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <Layers size={14} className="text-indigo-600" />
-              Layer Satelit Google Earth Engine (GEE)
+              Layer peta demonstrasi
             </span>
             <span className="text-[10px] text-emerald-700 bg-emerald-100 font-semibold px-2 py-0.5 rounded-full">
-              Resolusi 10m Sentinel-2
+              Data demo
             </span>
           </div>
 
           <p className="text-[11px] text-slate-500 mb-3">
-            Overlay multispektral presisi tinggi untuk menganalisis bahu jalan, vegetasi penutup drainase, dan titik rawan genangan air di koridor {selectedRoad.code}.
+            Pilihan ini hanya mengganti layer peta dasar untuk demonstrasi. Ini bukan NDVI, kelembapan tanah, atau produk analisis Sentinel-2 dari Google Earth Engine.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -129,7 +129,7 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
           </div>
         </div>
 
-        {/* 120 TB Big Data Cloud Pipeline Architecture Monitoring */}
+        {/* Local demo metrics only; no cloud pipeline is connected */}
         <div className="p-4 rounded-2xl bg-slate-900 text-slate-100 shadow-sm border border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -140,16 +140,16 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
             </div>
             <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
               <Activity size={12} className="animate-pulse" />
-              {cloudStats.throughputMBps} MB/s Throughput
+              Statistik demo
             </span>
           </div>
 
-          {/* Progress bar for 120 TB Processing */}
+          {/* Progress indicator for demo values */}
           <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-slate-400">Volume simulasi:</span>
               <span className="font-mono text-sky-400 font-bold">
-                {cloudStats.processedTB.toFixed(1)} TB / {cloudStats.totalVolumeTB} TB ({processedPercent}%)
+                {cloudStats.processedTB.toFixed(1)} / {cloudStats.totalVolumeTB} unit demo ({processedPercent}%)
               </span>
             </div>
             <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-700">
@@ -160,12 +160,12 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
             </div>
           </div>
 
-          {/* Cluster specs grid */}
+          {/* Integration status grid */}
           <div className="grid grid-cols-3 gap-2 pt-1 text-center">
             <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
               <div className="text-[10px] text-slate-400">Node Worker</div>
               <div className="text-sm font-mono font-bold text-slate-200 mt-0.5">
-                {cloudStats.distributedNodes} Instances
+                Simulasi
               </div>
             </div>
             <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
@@ -189,7 +189,7 @@ export const EarthEnginePanel: React.FC<EarthEnginePanelProps> = ({
             <div className="flex items-center gap-2">
               <Smartphone size={16} className="text-indigo-600" />
               <span className="text-xs font-bold text-slate-800">
-                Aksesibilitas Multi-Perangkat & Sinkronisasi
+                Status Penyimpanan dan Sinkronisasi
               </span>
             </div>
             <span className="text-[11px] text-slate-500">
