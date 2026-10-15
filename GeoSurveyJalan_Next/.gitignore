@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+.venv/
+venv/
+.env
+
+# Test/build artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.spec
+
+# Local data and logs (review before adding exceptions)
+*.log
+*.sqlite
+*.sqlite3
+*.db
+output/
+exports/
+cache/
+temp/
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
