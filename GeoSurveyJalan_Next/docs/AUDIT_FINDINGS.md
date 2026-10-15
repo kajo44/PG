@@ -30,8 +30,8 @@ Audit dilakukan terhadap arsip asli dan perubahan aplikasi kerja. Bedakan temuan
 
 ### 5. Impor foto dan metadata GPS
 **Temuan awal:** STA dan koordinat ditetapkan acak.
-**Perbaikan:** nilai acak dihapus. Impor kini mencoba membaca GPS EXIF melalui `exifr`; bila tersedia, koordinat asli dipertahankan dan STA awal dihitung dari proyeksi terdekat pada geometri ruas. Foto yang berjarak lebih dari 100 m dari garis ruas diberi peringatan. Bila GPS EXIF tidak tersedia/gagal dibaca, nilai awal memakai titik awal ruas dan STA 0 dengan catatan perlu koreksi.
-**Batasan:** hasil otomatis belum menjamin foto berasal dari ruas terpilih; validasi manusia tetap diperlukan. Pembacaan waktu EXIF dan UI koreksi lokasi/STA belum selesai.
+**Perbaikan:** nilai acak dihapus. Impor kini mencoba membaca GPS EXIF melalui `exifr`; bila tersedia, koordinat asli dipertahankan dan STA awal dihitung dari proyeksi terdekat pada geometri ruas. Foto yang berjarak lebih dari 100 m dari garis ruas diberi peringatan. Bila GPS EXIF tidak tersedia/gagal dibaca, nilai awal memakai titik awal ruas dan STA 0 dengan catatan perlu koreksi. Form inspeksi kini menyediakan input manual latitude/longitude/STA dan validasi rentang dasar.
+**Batasan:** hasil otomatis belum menjamin foto berasal dari ruas terpilih; validasi manusia tetap diperlukan. Pembacaan waktu EXIF dan validasi CRS/STA pada data nyata belum selesai.
 
 ### 6. Penyimpanan lokal
 **Temuan awal:** data URL foto disimpan di localStorage, yang memiliki kuota kecil; antrean juga menyimpan payload foto besar.
@@ -45,7 +45,7 @@ Audit dilakukan terhadap arsip asli dan perubahan aplikasi kerja. Bedakan temuan
 ### 8. Dependensi, build, dan performa awal
 **Temuan awal:** instalasi npm gagal karena versi esbuild tidak memenuhi peer requirement Vite 8.3; bundle awal besar.
 **Perbaikan:** esbuild disesuaikan, dependensi yang tidak digunakan dihapus/dipindah ke dev dependencies, konfigurasi Vite memakai resolusi path ESM, dan modul tab/modal dimuat secara lazy.
-**Validasi sebelumnya:** run CI `38770468972` berhasil untuk instalasi, TypeScript check, 12 tes unit, dan production build sebelum lazy loading terbaru. Run baru diperlukan untuk mengesahkan perubahan terakhir.
+**Validasi sebelumnya:** run CI `38770468972` berhasil untuk instalasi, TypeScript check, 12 tes unit, dan production build sebelum lazy loading terbaru. Run CI `38770842597` berhasil untuk `npm ci`, TypeScript check, 12 tes unit, dan production build setelah lazy loading. UI koreksi foto/STA ditambahkan setelah run tersebut sehingga masih menunggu validasi ulang.
 
 ## Pekerjaan berikutnya
 
