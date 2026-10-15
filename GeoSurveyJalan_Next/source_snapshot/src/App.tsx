@@ -15,7 +15,6 @@ import {
 } from './data/mockRoads';
 import { executeMapMatching, generateSimulatedRawGPS } from './utils/mapMatching';
 import {
-  clearSyncQueue,
   getPendingSyncCount,
   loadPhotosFromLocal,
   queueForCloudSync,
@@ -93,6 +92,7 @@ export default function App() {
   const [cloudStats, setCloudStats] = useState<CloudPipelineStats>(INITIAL_CLOUD_STATS);
   const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
   const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => getPendingSyncCount());
+  const [syncNotice, setSyncNotice] = useState<string | null>(null);
 
   // Export Modal State
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
@@ -189,15 +189,16 @@ export default function App() {
     setPendingSyncCount(getPendingSyncCount());
   };
 
-  // Trigger Cloud Sync for 120TB distributed pipeline
+  // No cloud endpoint is configured in this baseline. Never clear the queue or
+  // report success until a real backend acknowledges every queued item.
   const handleTriggerCloudSync = () => {
-    clearSyncQueue();
-    setPendingSyncCount(0);
-    setCloudStats((prev) => ({
-      ...prev,
-      processedTB: Math.min(prev.totalVolumeTB, prev.processedTB + 0.4),
-      lastSyncTimestamp: new Date().toISOString(),
-    }));
+    const pending = getPendingSyncCount();
+    setPendingSyncCount(pending);
+    setSyncNotice(
+      pending > 0
+        ? `Sinkronisasi server belum dikonfigurasi. ${pending} perubahan tetap tersimpan lokal dan tidak dihapus.`
+        : 'Belum ada perubahan dalam antrean. Backend sinkronisasi belum dikonfigurasi.'
+    );
   };
 
   // Jump vehicle to anomaly point on map
@@ -226,6 +227,16 @@ export default function App() {
         pendingSyncCount={pendingSyncCount}
         onSyncNow={handleTriggerCloudSync}
       />
+
+      {syncNotice && (
+        <div role="status" aria-live="polite" className="fixed right-4 top-20 z-50 max-w-md rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 shadow-lg">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+            <p className="flex-1">{syncNotice}</p>
+            <button type="button" onClick={() => setSyncNotice(null)} className="rounded px-2 py-1 font-bold hover:bg-amber-100" aria-label="Tutup pemberitahuan">×</button>
+          </div>
+        </div>
+      )}
 
       {/* Main Workspace Area */}
       <main className="flex-1 overflow-hidden relative">
