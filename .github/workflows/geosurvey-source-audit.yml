@@ -45,17 +45,17 @@ jobs:
         continue-on-error: true
       - name: TypeScript check
         id: typecheck
-        working-directory: GeoSurveyJalan_Next/source_snapshot
+        working-directory: GeoSurveyJalan_Next/app
         run: npm run lint
         continue-on-error: true
       - name: Unit tests
         id: tests
-        working-directory: GeoSurveyJalan_Next/source_snapshot
+        working-directory: GeoSurveyJalan_Next/app
         run: npm test
         continue-on-error: true
       - name: Production build
         id: build
-        working-directory: GeoSurveyJalan_Next/source_snapshot
+        working-directory: GeoSurveyJalan_Next/app
         run: npm run build
         continue-on-error: true
       - name: Persist extracted baseline and audit report
