@@ -31,7 +31,7 @@ Audit dilakukan terhadap arsip asli dan perubahan aplikasi kerja. Bedakan temuan
 ### 5. Impor foto dan metadata GPS
 **Temuan awal:** STA dan koordinat ditetapkan acak.
 **Perbaikan:** nilai acak dihapus. Impor kini mencoba membaca GPS EXIF melalui `exifr`; bila tersedia, koordinat asli dipertahankan dan STA awal dihitung dari proyeksi terdekat pada geometri ruas. Foto yang berjarak lebih dari 100 m dari garis ruas diberi peringatan. Bila GPS EXIF tidak tersedia/gagal dibaca, nilai awal memakai titik awal ruas dan STA 0 dengan catatan perlu koreksi.
-**Batasan:** hasil otomatis belum menjamin foto benar-benar berasal dari ruas terpilih; validasi manusia tetap diperlukan. Pembacaan waktu EXIF dan UI koreksi lokasi/STA belum selesai.
+**Batasan:** hasil otomatis belum menjamin foto berasal dari ruas terpilih; validasi manusia tetap diperlukan. Pembacaan waktu EXIF dan UI koreksi lokasi/STA belum selesai.
 
 ### 6. Penyimpanan lokal
 **Temuan awal:** data URL foto disimpan di localStorage, yang memiliki kuota kecil; antrean juga menyimpan payload foto besar.
@@ -42,15 +42,15 @@ Audit dilakukan terhadap arsip asli dan perubahan aplikasi kerja. Bedakan temuan
 **Temuan awal:** PDF berisi nama pejabat, NIP, dan kode lisensi hard-coded serta status cloud/HMM yang tidak didukung.
 **Perbaikan:** identitas pengesah diganti menjadi belum ditentukan/draf; status integrasi dan label metode disesuaikan dengan implementasi.
 
-### 8. Dependensi/build
-**Temuan awal:** instalasi npm gagal karena versi esbuild tidak memenuhi peer requirement Vite 8.3.
-**Perbaikan:** esbuild diperbarui ke `^0.28.0`, dependensi yang tidak digunakan dihapus/dipindah ke dev dependencies, dan Vite config memakai resolusi path ESM. Modul ekspor PDF dimuat secara lazy untuk mengurangi beban bundle awal.
-**Validasi sebelumnya:** run CI `38768831165` berhasil untuk instalasi, TypeScript check, tes unit, dan production build sebelum penambahan EXIF GPS dan perubahan IndexedDB/HMM terakhir. Run baru diperlukan untuk mengesahkan perubahan terbaru.
+### 8. Dependensi, build, dan performa awal
+**Temuan awal:** instalasi npm gagal karena versi esbuild tidak memenuhi peer requirement Vite 8.3; bundle awal besar.
+**Perbaikan:** esbuild disesuaikan, dependensi yang tidak digunakan dihapus/dipindah ke dev dependencies, konfigurasi Vite memakai resolusi path ESM, dan modul tab/modal dimuat secara lazy.
+**Validasi sebelumnya:** run CI `38770468972` berhasil untuk instalasi, TypeScript check, 12 tes unit, dan production build sebelum lazy loading terbaru. Run baru diperlukan untuk mengesahkan perubahan terakhir.
 
 ## Pekerjaan berikutnya
 
-1. Jalankan ulang instalasi, lint, tes, dan build pada perubahan terbaru.
-2. Perluas pengujian map matching untuk hairpin, segmen degenerat, timestamp invalid, dan kandidat jaringan.
+1. Jalankan ulang instalasi, lint, tes, dan build setelah lazy loading terbaru.
+2. Perluas pengujian map matching untuk segmen degenerat, timestamp invalid, dan jaringan multi-ruas.
 3. Tambahkan UI koreksi foto/STA dan uji terhadap metadata EXIF nyata.
 4. Rancang backend sinkronisasi dengan acknowledgement, retry, dan idempotensi.
 5. Hubungkan GEE/AI melalui konfigurasi aman jika layanan tersebut memang diperlukan.
