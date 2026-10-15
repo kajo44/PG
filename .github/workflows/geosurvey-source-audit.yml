@@ -1,0 +1,93 @@
+name: GeoSurvey Jalan Next - Source Audit
+
+on:
+  push:
+    branches:
+      - geosurvey-jalan-next
+    paths:
+      - 'pkrms-geosurvey-pro.zip'
+      - 'GeoSurveyJalan_Next/tools/audit_source_zip.py'
+      - 'GeoSurveyJalan_Next/docs/AUDIT_FINDINGS.md'
+      - '.github/workflows/geosurvey-source-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          ref: geosurvey-jalan-next
+      - name: Prepare working app and preserve original path
+        run: |
+          if [ -d GeoSurveyJalan_Next/source_snapshot ] && [ ! -d GeoSurveyJalan_Next/app ]; then
+            git mv GeoSurveyJalan_Next/source_snapshot GeoSurveyJalan_Next/app
+          fi
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inventory and safely extract ZIP
+        run: python GeoSurveyJalan_Next/tools/audit_source_zip.py
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install source dependencies
+        id: install
+        working-directory: GeoSurveyJalan_Next/app
+        run: npm ci --no-audit --no-fund
+        continue-on-error: true
+      - name: TypeScript check
+        id: typecheck
+        working-directory: GeoSurveyJalan_Next/app
+        run: npm run lint
+        continue-on-error: true
+      - name: Unit tests
+        id: tests
+        working-directory: GeoSurveyJalan_Next/app
+        run: npm test
+        continue-on-error: true
+      - name: Production build
+        id: build
+        working-directory: GeoSurveyJalan_Next/app
+        run: npm run build
+        continue-on-error: true
+      - name: Persist extracted baseline and audit report
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add GeoSurveyJalan_Next/app/ GeoSurveyJalan_Next/source_original/ GeoSurveyJalan_Next/audit/
+          if ! git diff --cached --quiet; then
+            git commit -m "Add extracted GeoSurvey Jalan Next source baseline"
+            git push origin HEAD:geosurvey-jalan-next
+          fi
+      - name: Fail workflow if any validation step failed
+        if: always()
+        env:
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+          TEST_OUTCOME: ${{ steps.tests.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          printf 'Install: %s\nTypeScript: %s\nTests: %s\nBuild: %s\n' "$INSTALL_OUTCOME" "$TYPECHECK_OUTCOME" "$TEST_OUTCOME" "$BUILD_OUTCOME"
+          if [[ "$INSTALL_OUTCOME" != "success" || "$TYPECHECK_OUTCOME" != "success" || "$TEST_OUTCOME" != "success" || "$BUILD_OUTCOME" != "success" ]]; then
+            exit 1
+          fi
+      - name: Upload audit report and extracted baseline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geosurvey-source-audit
+          path: |
+            GeoSurveyJalan_Next/audit/
+            GeoSurveyJalan_Next/app/
+            GeoSurveyJalan_Next/source_original/
+          if-no-files-found: warn
+          retention-days: 7

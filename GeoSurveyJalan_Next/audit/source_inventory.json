@@ -1,0 +1,222 @@
+{
+  "archive": "pkrms-geosurvey-pro.zip",
+  "archive_size": 258311,
+  "archive_sha256": "6244179f0a4628a9325c0609700a222b7615c1762e48aa3977621bd0510e97b7",
+  "entry_count": 33,
+  "uncompressed_bytes": 254501,
+  "extracted_to": "GeoSurveyJalan_Next/source_original",
+  "files": [
+    {
+      "path": "metadata.json",
+      "compressed_size": 368,
+      "size": 368,
+      "is_dir": false
+    },
+    {
+      "path": "index.html",
+      "compressed_size": 1642,
+      "size": 1642,
+      "is_dir": false
+    },
+    {
+      "path": "src",
+      "compressed_size": 0,
+      "size": 0,
+      "is_dir": true
+    },
+    {
+      "path": "src/index.css",
+      "compressed_size": 1534,
+      "size": 1534,
+      "is_dir": false
+    },
+    {
+      "path": "src/types",
+      "compressed_size": 0,
+      "size": 0,
+      "is_dir": true
+    },
+    {
+      "path": "src/types/pkrms.ts",
+      "compressed_size": 3103,
+      "size": 3103,
+      "is_dir": false
+    },
+    {
+      "path": "src/utils",
+      "compressed_size": 0,
+      "size": 0,
+      "is_dir": true
+    },
+    {
+      "path": "src/utils/geoMath.ts",
+      "compressed_size": 3247,
+      "size": 3247,
+      "is_dir": false
+    },
+    {
+      "path": "src/utils/mapMatching.ts",
+      "compressed_size": 7230,
+      "size": 7230,
+      "is_dir": false
+    },
+    {
+      "path": "src/data",
+      "compressed_size": 0,
+      "size": 0,
+      "is_dir": true
+    },
+    {
+      "path": "src/data/mockRoads.ts",
+      "compressed_size": 8833,
+      "size": 8833,
+      "is_dir": false
+    },
+    {
+      "path": "src/utils/pdfExport.ts",
+      "compressed_size": 11580,
+      "size": 11580,
+      "is_dir": false
+    },
+    {
+      "path": "src/utils/csvExport.ts",
+      "compressed_size": 4047,
+      "size": 4047,
+      "is_dir": false
+    },
+    {
+      "path": "src/utils/offlineSync.ts",
+      "compressed_size": 1558,
+      "size": 1558,
+      "is_dir": false
+    },
+    {
+      "path": "src/components",
+      "compressed_size": 0,
+      "size": 0,
+      "is_dir": true
+    },
+    {
+      "path": "src/components/InteractiveMap.tsx",
+      "compressed_size": 26595,
+      "size": 26595,
+      "is_dir": false
+    },
+    {
+      "path": "src/components/MapMatchingPanel.tsx",
+      "compressed_size": 14039,
+      "size": 14039,
+      "is_dir": false
+    },
+    {
+      "path": "src/components/PhotoInspectionModal.tsx",
+      "compressed_size": 16636,
+      "size": 16636,
+      "is_dir": false
+    },
+    {
+      "path": "src/components/PhotoGalleryView.tsx",
+      "compressed_size": 11744,
+      "size": 11744,
+      "is_dir": false
+    },
+    {
+      "path": "src/components/EarthEnginePanel.tsx",
+      "compressed_size": 9580,
+      "size": 9580,
+      "is_dir": false
+    },
+    {
+      "path": "src/components/AnalyticsDashboard.tsx",
+      "compressed_size": 13838,
+      "size": 13838,
+      "is_dir": false
+    },
+    {
+      "path": "src/components/ExportModal.tsx",
+      "compressed_size": 7771,
+      "size": 7771,
+      "is_dir": false
+    },
+    {
+      "path": "src/components/Header.tsx",
+      "compressed_size": 6796,
+      "size": 6796,
+      "is_dir": false
+    },
+    {
+      "path": "src/components/TrackEditorModal.tsx",
+      "compressed_size": 8045,
+      "size": 8045,
+      "is_dir": false
+    },
+    {
+      "path": "src/App.tsx",
+      "compressed_size": 14260,
+      "size": 14260,
+      "is_dir": false
+    },
+    {
+      "path": "src/main.tsx",
+      "compressed_size": 159,
+      "size": 159,
+      "is_dir": false
+    },
+    {
+      "path": "tsconfig.json",
+      "compressed_size": 538,
+      "size": 538,
+      "is_dir": false
+    },
+    {
+      "path": ".gitignore",
+      "compressed_size": 73,
+      "size": 73,
+      "is_dir": false
+    },
+    {
+      "path": ".env.example",
+      "compressed_size": 445,
+      "size": 445,
+      "is_dir": false
+    },
+    {
+      "path": "vite.config.ts",
+      "compressed_size": 705,
+      "size": 705,
+      "is_dir": false
+    },
+    {
+      "path": "package.json",
+      "compressed_size": 1001,
+      "size": 1001,
+      "is_dir": false
+    },
+    {
+      "path": "bun.lock",
+      "compressed_size": 78592,
+      "size": 78592,
+      "is_dir": false
+    },
+    {
+      "path": "README.md",
+      "compressed_size": 542,
+      "size": 542,
+      "is_dir": false
+    }
+  ],
+  "candidate_entrypoints_and_manifests": [
+    {
+      "path": "README.md",
+      "compressed_size": 542,
+      "size": 542,
+      "is_dir": false
+    }
+  ],
+  "python_syntax_checks": [],
+  "limitations": [
+    "Static syntax checks do not prove application correctness.",
+    "Dependencies and runtime behavior have not been tested by this script.",
+    "Binary assets and application semantics require manual review."
+  ]
+}

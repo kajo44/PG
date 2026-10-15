@@ -1,0 +1,8 @@
+{
+  "name": "GeoSurvey Jalan Next",
+  "description": "Aplikasi survei kondisi jalan, inspeksi foto per STA, visualisasi geospasial, map matching dasar, analitik, dan ekspor data. Backend dan Google Earth Engine belum dikonfigurasi.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}
