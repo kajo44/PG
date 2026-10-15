@@ -1,37 +1,40 @@
 # Roadmap Pengembangan
 
 ## Tahap 1 — Akuisisi dan inventarisasi sumber
-- [ ] Ekstrak arsip sumber ke workspace tanpa mengubah ZIP asli.
-- [ ] Catat daftar file, ukuran, hash, dan struktur direktori.
-- [ ] Identifikasi entry point, UI, modul domain, database, aset, konfigurasi, dan skrip build.
-- [ ] Temukan dokumentasi yang ada serta konfigurasi dependensi.
+- [x] Ekstrak arsip sumber ke workspace tanpa mengubah ZIP asli.
+- [x] Catat jumlah entri, ukuran, dan hash arsip.
+- [x] Identifikasi entry point, UI, modul domain, aset, konfigurasi, dan dependensi.
+- [x] Pisahkan ekstraksi asli dari aplikasi kerja.
 
 ## Tahap 2 — Audit teknis dan fungsional
-- [ ] Petakan alur kerja pengguna dan fitur yang benar-benar ada.
-- [ ] Periksa impor, dependensi, versi runtime, dan kompatibilitas.
-- [ ] Periksa validasi input, exception handling, logging, dan potensi kehilangan data.
-- [ ] Audit operasi file/folder, database, dan ekspor.
-- [ ] Audit alur GIS, koordinat, geometri, foto, EXIF/GPS, serta KML/KMZ bila ada.
-- [ ] Buat daftar bug terurut berdasarkan dampak dan tingkat risiko.
+- [x] Petakan fitur yang tampak dari kode dan bedakan data demo dari integrasi nyata.
+- [x] Identifikasi risiko antrean sinkronisasi, label cloud/GEE, lokasi foto acak, dan informasi pengesahan hard-coded.
+- [x] Periksa dependensi dan perbaiki konflik peer dependency Vite/esbuild.
+- [x] Tambahkan checklist audit dan catatan temuan.
 
-## Tahap 3 — Stabilisasi
-- [ ] Perbaiki bug kritis dengan perubahan sekecil mungkin.
-- [ ] Tambahkan fallback yang tidak menyamarkan kegagalan.
-- [ ] Pastikan proses panjang memberi status/progres dan dapat dibatalkan dengan aman bila memungkinkan.
-- [ ] Tambahkan pengujian untuk fungsi inti dan kasus gagal.
+## Tahap 3 — Stabilisasi awal
+- [x] Cegah penghapusan antrean lokal tanpa acknowledgement backend.
+- [x] Tambahkan validasi foto dan geometri/GPS dasar.
+- [x] Perbaiki konsistensi flag anomali.
+- [x] Tambahkan penyimpanan foto IndexedDB dengan migrasi localStorage.
+- [x] Tambahkan tes unit awal untuk geodesi, STA, dan map matching.
+- [ ] Perluas pengujian ekspor, penyimpanan, dan kasus data rusak.
 
 ## Tahap 4 — Rekonstruksi dan peningkatan
-- [ ] Rapikan struktur modul mengikuti temuan audit.
-- [ ] Tingkatkan konsistensi UI dan pesan status.
-- [ ] Perkuat validasi, logging, konfigurasi, dan pemulihan kesalahan.
-- [ ] Evaluasi integrasi geospasial/AI berdasarkan kebutuhan nyata dan dukungan kode sumber.
-- [ ] Hindari perubahan skema atau penghapusan fitur tanpa migrasi dan catatan.
+- [x] Implementasi awal HMM/Viterbi untuk satu geometri ruas.
+- [x] Luruskan label demo/integrasi yang belum dikonfigurasi.
+- [ ] Validasi HMM/Viterbi terhadap data GPS lapangan dan lintasan hairpin nyata.
+- [ ] Tambahkan pembacaan EXIF/GPS, pemetaan foto ke STA, dan koreksi manual yang eksplisit.
+- [ ] Rancang backend sinkronisasi dengan acknowledgement, retry, dan idempotensi.
+- [ ] Hubungkan GEE/AI melalui konfigurasi aman setelah kebutuhan layanan ditetapkan.
+- [ ] Evaluasi map matching multi-ruas/interseksi.
 
 ## Tahap 5 — Paket dan dokumentasi
-- [ ] Tetapkan dependensi langsung dan versi yang kompatibel.
-- [ ] Siapkan skrip instalasi serta build Windows portable setelah runtime diuji.
-- [ ] Dokumentasikan instalasi, penggunaan, troubleshooting, format data, dan batasan.
-- [ ] Jalankan smoke test dari lingkungan bersih.
-- [ ] Publikasikan catatan rilis dengan daftar fitur dan pengujian yang benar-benar selesai.
+- [x] Tetapkan Node.js/npm sebagai toolchain proyek web.
+- [x] Tambahkan lint, unit test, build, dan CI.
+- [ ] Kunci dependensi menggunakan package-lock dan gunakan npm ci di CI.
+- [ ] Uji smoke test di browser dan perangkat dengan penyimpanan terbatas.
+- [ ] Evaluasi distribusi desktop/portable jika memang dibutuhkan.
+- [ ] Dokumentasikan alur kerja lapangan dan batasan data resmi.
 
 **Aturan status:** checklist hanya ditandai selesai setelah ada bukti pemeriksaan atau hasil uji.
