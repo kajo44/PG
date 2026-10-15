@@ -41,7 +41,7 @@ jobs:
       - name: Install source dependencies
         id: install
         working-directory: GeoSurveyJalan_Next/app
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
         continue-on-error: true
       - name: TypeScript check
         id: typecheck
@@ -87,6 +87,7 @@ jobs:
           name: geosurvey-source-audit
           path: |
             GeoSurveyJalan_Next/audit/
-            GeoSurveyJalan_Next/source_snapshot/
+            GeoSurveyJalan_Next/app/
+            GeoSurveyJalan_Next/source_original/
           if-no-files-found: warn
           retention-days: 7
