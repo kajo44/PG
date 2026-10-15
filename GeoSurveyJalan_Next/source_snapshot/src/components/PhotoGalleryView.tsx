@@ -65,21 +65,18 @@ export const PhotoGalleryView: React.FC<PhotoGalleryViewProps> = ({
     reader.onload = (event) => {
       const base64Url = event.target?.result as string;
 
-      // Assign to current road mid-point or random STA for survey realism
-      const randomSta = Math.floor(Math.random() * (selectedRoad.lengthKm * 1000));
-      const coordIdx = Math.min(
-        Math.floor((randomSta / (selectedRoad.lengthKm * 1000)) * selectedRoad.coordinates.length),
-        selectedRoad.coordinates.length - 1
-      );
-      const coord = selectedRoad.coordinates[coordIdx];
+      // Do not invent GPS/STA from randomness. Until EXIF parsing or manual
+      // positioning is implemented, use a clearly labelled provisional origin.
+      const provisionalSta = 0;
+      const coord = selectedRoad.coordinates[0] ?? [0, 0];
 
       const newPhoto: SurveyPhoto = {
         id: `photo-import-${Date.now()}`,
         roadLinkId: selectedRoad.id,
-        sta: randomSta,
-        staLabel: formatSTA(randomSta),
-        lat: coord[0] + (Math.random() * 0.0004 - 0.0002),
-        lng: coord[1] + (Math.random() * 0.0004 - 0.0002),
+        sta: provisionalSta,
+        staLabel: formatSTA(provisionalSta),
+        lat: coord[0],
+        lng: coord[1],
         imageSrc: base64Url,
         timestamp: new Date().toISOString(),
         surveyor: 'Surveyor Lapangan',
@@ -89,7 +86,7 @@ export const PhotoGalleryView: React.FC<PhotoGalleryViewProps> = ({
         pciScore: 75,
         defects: [{ type: 'Retak Permukaan', severity: 'Sedang', extentPercent: 15 }],
         laneWidthMeters: selectedRoad.widthMeters,
-        notes: 'Foto dokumentasi lapangan baru diimpor dari perangkat surveyor.',
+        notes: 'Foto diimpor. Koordinat dan STA masih nilai awal sementara; verifikasi metadata GPS/EXIF atau koreksi manual sebelum dipakai untuk analisis.',
         verified: false,
         syncedToCloud: false,
         drainageCondition: 'Baik',
