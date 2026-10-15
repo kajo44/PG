@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Globe2 size={14} />
-            <span>Earth Engine & 120TB</span>
+            <span>Geospasial & Integrasi</span>
           </button>
         </nav>
 
