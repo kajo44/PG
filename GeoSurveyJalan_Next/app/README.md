@@ -4,7 +4,9 @@ Aplikasi web untuk mendukung survei kondisi jalan, inspeksi foto per STA, visual
 
 ## Status fungsional saat ini
 
-**Ini masih baseline pengembangan.** Dataset jalan dan sebagian statistik adalah data demo. Backend sinkronisasi belum dikonfigurasi; Google Earth Engine belum terhubung. Foto impor belum membaca koordinat EXIF/GPS secara otomatis dan koordinat/STA awal harus diverifikasi. Map matching menggunakan kandidat proyeksi segmen, skor emisi berbasis jarak GPS, skor transisi berbasis selisih jarak/STA, dan dekode jalur Viterbi pada satu geometri ruas. Model ini masih perlu divalidasi pada data lapangan dan tidak menggantikan pemeriksaan teknis.
+**Ini masih baseline pengembangan.** Dataset jalan dan sebagian statistik adalah data demo. Backend sinkronisasi belum dikonfigurasi; Google Earth Engine belum terhubung. Impor foto membaca GPS EXIF bila tersedia dan menghitung STA awal melalui proyeksi ke geometri ruas; hasil tetap perlu diverifikasi. Jika EXIF GPS tidak tersedia, koordinat dan STA awal bersifat sementara.
+
+Map matching menggunakan kandidat proyeksi segmen, skor emisi berbasis jarak GPS, skor transisi berbasis selisih jarak/STA, dan dekode jalur Viterbi pada satu geometri ruas. Model ini masih perlu divalidasi pada data lapangan dan tidak menggantikan pemeriksaan teknis.
 
 ## Persyaratan
 
@@ -34,13 +36,14 @@ npm run build
 - `src/App.tsx` — state dan alur antarmodul.
 - `src/components/` — antarmuka peta, galeri, inspeksi foto, analitik, ekspor, dan status integrasi.
 - `src/utils/geoMath.ts` — perhitungan geodesi dan STA.
-- `src/utils/mapMatching.ts` — algoritme HMM/Viterbi map matching.
-- `src/utils/offlineSync.ts` — antrean lokal sementara; bukan konektor server.
+- `src/utils/mapMatching.ts` — HMM/Viterbi untuk satu geometri ruas.
+- `src/utils/photoLocation.ts` — proyeksi GPS EXIF ke STA kumulatif ruas.
+- `src/utils/offlineSync.ts` — penyimpanan foto IndexedDB dan antrean metadata lokal; bukan konektor server.
 
 ## Prinsip data
 
-- Jangan menganggap nilai awal foto sebagai metadata GPS yang tervalidasi.
-- Jangan menganggap label “tersinkron” sebagai bukti penerimaan server.
+- Verifikasi GPS EXIF, geometri ruas, dan STA sebelum dipakai untuk keputusan teknis.
+- Jangan menganggap antrean lokal sebagai bukti data telah tersinkron ke server.
 - Jangan gunakan laporan aplikasi sebagai pengesahan resmi sebelum data dan pejabat penandatangan diverifikasi.
 - Jangan menaruh API key rahasia dalam kode frontend atau berkas yang dibundel ke browser.
 
