@@ -27,7 +27,6 @@ import { PhotoInspectionModal } from './components/PhotoInspectionModal';
 import { PhotoGalleryView } from './components/PhotoGalleryView';
 import { EarthEnginePanel } from './components/EarthEnginePanel';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { ExportModal } from './components/ExportModal';
 import { TrackEditorModal } from './components/TrackEditorModal';
 import {
   AlertTriangle,
@@ -43,6 +42,10 @@ import {
   Sparkles,
   Wand2,
 } from 'lucide-react';
+
+const ExportModal = React.lazy(() =>
+  import('./components/ExportModal').then((module) => ({ default: module.ExportModal }))
+);
 
 function photoSyncMetadata(photo: SurveyPhoto): Omit<SurveyPhoto, 'imageSrc' | 'thumbnailSrc'> {
   const { imageSrc: _imageSrc, thumbnailSrc: _thumbnailSrc, ...metadata } = photo;
@@ -410,13 +413,15 @@ export default function App() {
       />
 
       {/* MODAL 2: Automated PDF, CSV, and GeoJSON Report Export */}
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        selectedRoad={selectedRoad}
-        photos={photos.filter((p) => p.roadLinkId === selectedRoad.id)}
-        mapMatchResult={mapMatchResult}
-      />
+      <React.Suspense fallback={null}>
+        <ExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          selectedRoad={selectedRoad}
+          photos={photos.filter((p) => p.roadLinkId === selectedRoad.id)}
+          mapMatchResult={mapMatchResult}
+        />
+      </React.Suspense>
 
       {/* MODAL 3: Manual Track Geometry Editor & GPS Anomaly Smoother */}
       <TrackEditorModal
