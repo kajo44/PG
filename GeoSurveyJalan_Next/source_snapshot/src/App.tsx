@@ -83,14 +83,14 @@ export default function App() {
   const [isEditingTrackOnMap, setIsEditingTrackOnMap] = useState<boolean>(false);
   const [isTrackEditorModalOpen, setIsTrackEditorModalOpen] = useState<boolean>(false);
 
-  // Google Earth Engine Multispectral Layer Type
+  // Demo imagery layer selection (not a live Google Earth Engine connection)
   const [geeLayerType, setGeeLayerType] = useState<
     'NONE' | 'SENTINEL_2' | 'NDVI' | 'SURFACE_MOISTURE'
   >('NONE');
 
-  // Big Data Lake (120 TB) & Distributed Cloud Pipeline
+  // Local demo statistics; no cloud backend is configured
   const [cloudStats, setCloudStats] = useState<CloudPipelineStats>(INITIAL_CLOUD_STATS);
-  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
+  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(true);
   const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => getPendingSyncCount());
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
 
@@ -357,7 +357,7 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 4: Google Earth Engine & 120 TB Big Data Cloud Processing */}
+        {/* VIEW 4: Geospatial layer demo and integration status */}
         {activeNavTab === 'earthengine' && (
           <div className="w-full h-full p-3 sm:p-5">
             <EarthEnginePanel
