@@ -50,9 +50,9 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div>
               <div className="text-sm font-black tracking-tight text-slate-900 flex items-center gap-1.5">
-                PKRMS <span className="text-indigo-600 font-extrabold">GeoSurvey</span>
+                <span className="text-indigo-600 font-extrabold">GeoSurvey Jalan Next</span>
                 <span className="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 font-mono font-bold">
-                  v3.4
+                  DEV
                 </span>
               </div>
               <div className="text-[10px] text-slate-400 font-medium hidden sm:block">
@@ -139,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Offline/Online toggle badge */}
           <button
             onClick={onToggleOffline}
-            title={isOfflineMode ? 'Beralih ke mode Online' : 'Beralih ke mode Offline'}
+            title={isOfflineMode ? 'Beralih ke mode Online demo (belum terhubung server)' : 'Beralih ke mode lokal'}
             className={`p-2 rounded-2xl border text-xs font-medium transition flex items-center gap-1 ${
               isOfflineMode
                 ? 'border-amber-400 bg-amber-50 text-amber-800'
@@ -148,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {isOfflineMode ? <WifiOff size={15} /> : <Wifi size={15} className="text-emerald-500" />}
             <span className="hidden lg:inline text-[11px]">
-              {isOfflineMode ? 'Offline' : 'Online'}
+              {isOfflineMode ? 'Lokal' : 'Online (demo)'}
             </span>
           </button>
 
